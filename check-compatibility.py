@@ -39,7 +39,7 @@ run([str(java_bin(ides[-1]) / 'java'), '-Xmx3g', '-jar', str(args.verifier.resol
 results = []
 for ide, info in zip(ides, infos):
     name = info['productCode'] + '-' + info['buildNumber']
-    verdicts = list((reports / name / 'plugins/local.tibero.offline-poc').glob('*/verification-verdict.txt'))
+    verdicts = list((reports / name / 'plugins/io.github.kergosdyr.tibero.database.tools').glob('*/verification-verdict.txt'))
     if not verdicts:
         raise SystemExit(f'No verifier result for {name}; see {output / "verifier.log"}')
     verdict = max(verdicts, key=lambda p: p.stat().st_mtime).read_text().strip()

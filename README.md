@@ -114,13 +114,27 @@ These integrations help you use the IDE's completion and navigation features whe
 ## Installation and Getting Started
 
 **Supported IDE:** IntelliJ IDEA 2026.1.5–2026.2.x<br>
-**Current version:** `0.7.8`
+**Required plugins:** Database Tools and SQL, Diagrams<br>
+**Plugin ID:** `io.github.kergosdyr.tibero.database.tools`
+
+### Choose the Right Version
+
+Tibero Database Tools provides the same features in two distributions to accommodate JDBC API changes in IntelliJ IDEA 2026.2.4.
+
+| Plugin Version | Supported IntelliJ IDEA | Build Range | Distribution |
+|---|---|---|---|
+| **0.7.8** | 2026.1.5–2026.2.3 | `261.27258.48`–`262.10968.63` | `tibero-database-tools-0.7.8-signed.zip` |
+| **0.7.9** | 2026.2.4–2026.2.x | `262.11879.100`–`262.*` | `tibero-database-tools-0.7.9-signed.zip` |
+
+Both versions provide identical functionality and use the same plugin ID. When installing manually, choose the distribution matching your IDE version. JetBrains Marketplace selects the compatible plugin version for your IDE.
+
+### Installation Steps
 
 1. Enable **Database Tools and SQL** and **Diagrams** in IntelliJ IDEA.
-2. Download the plugin ZIP or JAR from [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases).
-3. Select the downloaded file using <strong>Settings → Plugins → ⚙ → Install Plugin from Disk…</strong>.
-4. Restart the IDE and configure a Tibero data source in the Database tool window.
-5. Register a separate **Tibero JDBC driver JAR** appropriate for your server and test the connection.
+2. Download the ZIP matching your IDE version from [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases).
+3. If you have an earlier preview installed under `local.tibero.offline-poc`, uninstall it before installing the new version. Existing DB link catalogues and mappings are preserved.
+4. Open <strong>Settings → Plugins → ⚙ → Install Plugin from Disk…</strong>, select the downloaded ZIP, and restart the IDE.
+5. Configure a Tibero data source in the Database tool window, register a separately supplied **Tibero JDBC driver JAR** appropriate for your server, and test the connection.
 6. Select the schemas you want to work with and click **Refresh** to load their metadata.
 
 You can invoke basic code completion in SQL consoles with `Ctrl+Space`. The shortcut may vary depending on your IDE keymap.

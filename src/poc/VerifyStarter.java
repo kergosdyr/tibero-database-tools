@@ -2,7 +2,7 @@ package poc;
 
 import com.intellij.openapi.application.ApplicationStarter;
 import com.intellij.database.plan.ExplainPlanProvider;
-import com.intellij.database.dialects.base.introspector.jdbc.JdbcSourceLoader;
+import com.intellij.database.jdbc.JdbcSourceLoader;
 import com.intellij.database.dialects.generic.GenericDbms;
 import com.intellij.database.util.DdlBuilder;
 import java.nio.file.Files;

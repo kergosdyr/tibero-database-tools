@@ -1,7 +1,7 @@
 package poc;
 
 import com.intellij.database.dataSource.DatabaseConnectionCore;
-import com.intellij.database.dialects.base.introspector.jdbc.JdbcSourceLoader;
+import com.intellij.database.jdbc.JdbcSourceLoader;
 import com.intellij.database.dialects.generic.GenericDbms;
 import com.intellij.database.model.DasObject;
 import com.intellij.database.model.DasRoutine;

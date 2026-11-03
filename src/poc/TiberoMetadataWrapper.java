@@ -5,7 +5,7 @@ import com.intellij.database.remote.jdbc.RemoteDatabaseMetaData;
 import com.intellij.database.remote.jdbc.helpers.JdbcHelper;
 import com.intellij.database.remote.jdbc.helpers.JdbcNativeUtil;
 import com.intellij.database.dialects.generic.introspector.jdbc.GenericMetadataWrapper;
-import com.intellij.database.dialects.base.introspector.jdbc.wrappers.*;
+import com.intellij.database.jdbc.wrappers.*;
 import com.intellij.database.model.DasRoutine;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Function;

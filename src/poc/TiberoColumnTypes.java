@@ -1,6 +1,6 @@
 package poc;
 
-import com.intellij.database.dialects.base.introspector.jdbc.JdbcIntrospectorHelper;
+import com.intellij.database.jdbc.JdbcIntrospectorHelper;
 import com.intellij.database.model.ObjectKind;
 import com.intellij.database.model.basic.*;
 import com.intellij.database.remote.jdbc.helpers.JdbcHelper;

@@ -2,7 +2,14 @@
 
 Tibero Database Tools의 버전별 주요 변경 사항입니다.
 
+## 0.7.9
+
+- **IntelliJ IDEA 2026.2.4 호환성:** IDEA 2026.2.4(build 262.11879.100)에서 변경된 JetBrains JDBC API 클래스 경로에 대응했습니다.
+- **IDE 버전별 배포:** 0.7.8은 IDEA 2026.1.5–2026.2.3(`261.27258.48`–`262.10968.63`), 0.7.9는 IDEA 2026.2.4–2026.2.x(`262.11879.100`–`262.*`)를 지원하도록 배포 범위를 분리했습니다. 두 버전은 동일한 기능과 플러그인 ID(`io.github.kergosdyr.tibero.database.tools`)를 사용합니다.
+
 ## 0.7.8
+
+- **플러그인 ID:** `io.github.kergosdyr.tibero.database.tools`로 정했습니다. 기존 시험판을 제거한 뒤 새 배포본을 설치하면 저장된 DB 링크 목록과 매핑 정보를 이어서 사용할 수 있습니다.
 
 - **DB 링크 탐색 개선:** SQL의 `@LINK` 참조 해석과 생성 DDL 정의 이동, Database 도구 창의 더블클릭·Enter 탐색 및 최신 IDE 탐색 API 대응을 개선했습니다. 기존 링크 목록·원격 매핑의 저장 및 복원 기능을 유지합니다.
 - **공개 API 전환:** 내부 API 사용 6건을 공개 API로 교체했습니다. 타입 설정 2곳을 공개 stored-type API로 변경하고, 시작 이벤트 3곳의 내부 `appStarted` 등록을 제거하여 공개 `appFrameCreated`를 사용하도록 정리했으며, DB 링크 트리 접근 1곳을 공개 ToolWindow 컴포넌트 기반으로 변경했습니다.

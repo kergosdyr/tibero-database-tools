@@ -1,7 +1,7 @@
 <idea-plugin>
-  <id>local.tibero.offline-poc</id>
+  <id>io.github.kergosdyr.tibero.database.tools</id>
   <name>Tibero Database Tools</name>
-  <version>0.7.8</version>
+  <version>0.7.9</version>
   <vendor url="https://github.com/kergosdyr/tibero-database-tools">kergosdyr</vendor>
   <description><![CDATA[
     <p>
@@ -70,7 +70,7 @@
     Uses public APIs for type updates, startup events, and Database tool window access.
     Includes expanded English and Korean documentation and supports IntelliJ IDEA 2026.1.5–2026.2.x.
   ]]></change-notes>
-  <idea-version since-build="261.27258.48" until-build="262.*"/>
+  <idea-version since-build="262.11879.100" until-build="262.*"/>
   <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.database</depends>
   <depends>com.intellij.diagram</depends>

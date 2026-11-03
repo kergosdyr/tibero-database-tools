@@ -113,17 +113,31 @@ Tibero의 SQL 및 JDBC 메타데이터 특성을 IDE에 반영하여 객체 참�
 
 ## 설치 및 시작
 
-**지원 IDE:** IntelliJ IDEA 2026.1.5 ~ 2026.2.x<br>
-**현재 버전:** `0.7.8`
+**지원 IDE:** IntelliJ IDEA 2026.1.5–2026.2.x<br>
+**필수 플러그인:** Database Tools and SQL, Diagrams<br>
+**플러그인 ID:** `io.github.kergosdyr.tibero.database.tools`
+
+### IDE 버전에 맞는 배포본 선택
+
+IntelliJ IDEA 2026.2.4에서 JDBC API의 클래스 경로가 변경됨에 따라 IDE 버전별로 두 가지 배포본을 제공합니다. 두 버전의 기능은 동일합니다.
+
+| 플러그인 버전 | 지원 IntelliJ IDEA | 빌드 범위 | 설치 파일 |
+|---|---|---|---|
+| **0.7.8** | 2026.1.5–2026.2.3 | `261.27258.48`–`262.10968.63` | `tibero-database-tools-0.7.8-signed.zip` |
+| **0.7.9** | 2026.2.4–2026.2.x | `262.11879.100`–`262.*` | `tibero-database-tools-0.7.9-signed.zip` |
+
+두 배포본은 동일한 플러그인 ID를 사용합니다. 수동 설치 시에는 사용 중인 IDE 버전에 맞는 ZIP을 선택하세요. JetBrains Marketplace에서는 IDE와 호환되는 플러그인 버전이 선택됩니다.
+
+### 설치 방법
 
 1. IntelliJ IDEA에서 **Database Tools and SQL**과 **Diagrams**를 활성화합니다.
-2. [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases)에서 설치용 ZIP 또는 JAR를 다운로드합니다.
-3. <strong>Settings → Plugins → ⚙ → Install Plugin from Disk…</strong>에서 파일을 선택합니다.
-4. IDE를 재시작한 뒤 Database 도구 창에서 Tibero 데이터 소스를 설정합니다.
-5. 서버에 맞는 **Tibero JDBC 드라이버 JAR**를 별도로 등록하고 연결을 테스트합니다.
-6. 사용할 스키마를 선택하여 **Refresh**하면 객체 탐색과 SQL 콘솔 기능을 사용할 수 있습니다.
+2. [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases)에서 IDE 버전에 맞는 ZIP을 다운로드합니다.
+3. 기존 시험판(`local.tibero.offline-poc`)을 설치했다면 먼저 제거합니다. 기존 DB 링크 목록과 매핑 정보는 유지됩니다.
+4. <strong>Settings → Plugins → ⚙ → Install Plugin from Disk…</strong>에서 다운로드한 ZIP을 선택하고 IDE를 재시작합니다.
+5. Database 도구 창에서 Tibero 데이터 소스를 설정하고, 서버에 맞는 **Tibero JDBC 드라이버 JAR**를 별도로 등록한 뒤 연결을 테스트합니다.
+6. 사용할 스키마를 선택하고 **Refresh**하여 데이터베이스 메타데이터를 가져옵니다.
 
-SQL 콘솔의 기본 자동완성은 `Ctrl+Space`로 호출할 수 있으며, 단축키는 IDE 키맵에 따라 달라질 수 있습니다.
+SQL 콘솔에서는 기본적으로 `Ctrl+Space`로 자동완성을 호출할 수 있습니다. 단축키는 IDE 키맵에 따라 달라질 수 있습니다.
 
 ## 문서
 

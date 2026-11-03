@@ -3,7 +3,7 @@ package poc;
 import com.intellij.database.Dbms;
 import com.intellij.database.dataSource.*;
 import com.intellij.database.dialects.base.introspector.jdbc.JdbcIntrospector;
-import com.intellij.database.dialects.base.introspector.jdbc.wrappers.DatabaseMetaDataWrapper;
+import com.intellij.database.jdbc.wrappers.DatabaseMetaDataWrapper;
 import com.intellij.database.introspection.*;
 import com.intellij.database.model.*;
 import com.intellij.database.model.basic.*;

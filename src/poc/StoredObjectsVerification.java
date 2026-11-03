@@ -107,7 +107,7 @@ final class StoredObjectsVerification {
             var table=mod.getTables().createOrGet("TYPE_REPAIR");
             for(var c:cases) {
                 var column=table.getColumns().createOrGet((String)c[0]);
-                column.setDataType(com.intellij.database.dialects.base.introspector.jdbc.JdbcIntrospectorHelper.makeDasType((String)c[1],(Integer)c[2],(Integer)c[3],null,(Integer)c[4],column).toDataType());
+                column.setDataType(com.intellij.database.jdbc.JdbcIntrospectorHelper.makeDasType((String)c[1],(Integer)c[2],(Integer)c[3],null,(Integer)c[4],column).toDataType());
                 check(column.getDataType().getSpecification().equals(c[5]),"Cached fixture " + c[0] + ": " + column.getDataType().getSpecification());
             }
         });
@@ -127,11 +127,11 @@ final class StoredObjectsVerification {
             var routines=mod.familyOf(com.intellij.database.model.ObjectKind.ROUTINE);
             var function=(com.intellij.database.model.basic.BasicModRoutine)routines.createNewOne();
             function.setName("FN_AGE"); function.setRoutineKind(DasRoutine.Kind.FUNCTION);
-            var ret=function.createOrGetReturnArgument(); ret.setArgumentDirection(com.intellij.database.model.ArgumentDirection.RETURN); ret.setDataType(com.intellij.database.dialects.base.introspector.jdbc.JdbcIntrospectorHelper.makeDasType("NUMBER",-1,0,null,java.sql.Types.OTHER,ret).toDataType());
-            var from=function.getArguments().createNewOne(); from.setName("P_FROM"); from.setPosition((short)1); from.setArgumentDirection(com.intellij.database.model.ArgumentDirection.IN); from.setDataType(com.intellij.database.dialects.base.introspector.jdbc.JdbcIntrospectorHelper.makeDasType("DATE",-1,0,null,java.sql.Types.OTHER,from).toDataType());
+            var ret=function.createOrGetReturnArgument(); ret.setArgumentDirection(com.intellij.database.model.ArgumentDirection.RETURN); ret.setDataType(com.intellij.database.jdbc.JdbcIntrospectorHelper.makeDasType("NUMBER",-1,0,null,java.sql.Types.OTHER,ret).toDataType());
+            var from=function.getArguments().createNewOne(); from.setName("P_FROM"); from.setPosition((short)1); from.setArgumentDirection(com.intellij.database.model.ArgumentDirection.IN); from.setDataType(com.intellij.database.jdbc.JdbcIntrospectorHelper.makeDasType("DATE",-1,0,null,java.sql.Types.OTHER,from).toDataType());
             var procedure=(com.intellij.database.model.basic.BasicModRoutine)routines.createNewOne();
             procedure.setName("DO_IT"); procedure.setRoutineKind(DasRoutine.Kind.PROCEDURE);
-            var id=procedure.getArguments().createNewOne(); id.setName("P_ID"); id.setPosition((short)1); id.setArgumentDirection(com.intellij.database.model.ArgumentDirection.INOUT); id.setDataType(com.intellij.database.dialects.base.introspector.jdbc.JdbcIntrospectorHelper.makeDasType("NUMBER",-1,0,null,java.sql.Types.OTHER,id).toDataType());
+            var id=procedure.getArguments().createNewOne(); id.setName("P_ID"); id.setPosition((short)1); id.setArgumentDirection(com.intellij.database.model.ArgumentDirection.INOUT); id.setDataType(com.intellij.database.jdbc.JdbcIntrospectorHelper.makeDasType("NUMBER",-1,0,null,java.sql.Types.OTHER,id).toDataType());
         });
         var function=schema.getRoutines().find(r -> r.getName().equals("FN_AGE"));
         var procedure=schema.getRoutines().find(r -> r.getName().equals("DO_IT"));
@@ -266,9 +266,9 @@ final class StoredObjectsVerification {
         });
         audit.set(new com.intellij.database.dataSource.connection.audit.AdvancedAuditService(connection,
                 () -> com.intellij.database.dataSource.connection.audit.AuditService.compose(),project));
-        var factory=com.intellij.database.dialects.base.introspector.jdbc.wrappers.DatabaseMetaDataWrapper.EP.forDbms(GenericDbms.TIBERO);
+        var factory=com.intellij.database.jdbc.wrappers.DatabaseMetaDataWrapper.EP.forDbms(GenericDbms.TIBERO);
         check(factory instanceof TiberoMetadataWrapper.Factory,"Tibero metadata adapter selected");
-        var wrapper=com.intellij.database.dialects.base.introspector.jdbc.wrappers.DatabaseMetaDataWrapper.create(connection,metadata);
+        var wrapper=com.intellij.database.jdbc.wrappers.DatabaseMetaDataWrapper.create(connection,metadata);
         check(wrapper instanceof TiberoMetadataWrapper,"Connection-based metadata dispatch selects Tibero adapter");
         checkArgumentPipeline(connection,schema);
         checkColumnPipeline(project,connection,schema);
@@ -304,9 +304,9 @@ final class StoredObjectsVerification {
             case "getSearchStringEscape" -> "/";
             default -> throw new AssertionError("Unexpected JDBC call: "+m.getName());
         });
-        var wrapper=(TiberoMetadataWrapper)com.intellij.database.dialects.base.introspector.jdbc.wrappers.DatabaseMetaDataWrapper.create(connection,metadata);
+        var wrapper=(TiberoMetadataWrapper)com.intellij.database.jdbc.wrappers.DatabaseMetaDataWrapper.create(connection,metadata);
         var read=new ArrayList<Object[]>();
-        try(var columns=wrapper.getTableColumnsInner2(new com.intellij.database.dialects.base.introspector.jdbc.wrappers.DatabaseMetaDataWrapper.Schema("MixedCase",null),"T")) {
+        try(var columns=wrapper.getTableColumnsInner2(new com.intellij.database.jdbc.wrappers.DatabaseMetaDataWrapper.Schema("MixedCase",null),"T")) {
             while(columns.hasNext()) { var c=columns.next(); read.add(new Object[]{c.name,c.typeName,c.length,c.scale,c.typeSuffix,c.type}); }
         }
         var actual=new LinkedHashMap<String,String>();
@@ -314,7 +314,7 @@ final class StoredObjectsVerification {
             var table=mod.getTables().createOrGet("PIPELINE");
             for(var c:read) {
                 var column=table.getColumns().createOrGet((String)c[0]);
-                column.setDataType(com.intellij.database.dialects.base.introspector.jdbc.JdbcIntrospectorHelper.makeDasType((String)c[1],(Integer)c[2],(Integer)c[3],(String)c[4],(Integer)c[5],column).toDataType());
+                column.setDataType(com.intellij.database.jdbc.JdbcIntrospectorHelper.makeDasType((String)c[1],(Integer)c[2],(Integer)c[3],(String)c[4],(Integer)c[5],column).toDataType());
                 actual.put((String)c[0],column.getDataType().getSpecification());
             }
         });
@@ -349,16 +349,16 @@ final class StoredObjectsVerification {
                 default -> throw new AssertionError("Broken or unexpected JDBC metadata path invoked: " + m.getName());
             };
         });
-        var wrapper=com.intellij.database.dialects.base.introspector.jdbc.wrappers.DatabaseMetaDataWrapper.create(connection,metadata);
+        var wrapper=com.intellij.database.jdbc.wrappers.DatabaseMetaDataWrapper.create(connection,metadata);
         var signatures=new LinkedHashMap<String,List<String>>();
-        try(var arguments=wrapper.routineArguments(new com.intellij.database.dialects.base.introspector.jdbc.wrappers.DatabaseMetaDataWrapper.Schema("MixedCase",null),null,
+        try(var arguments=wrapper.routineArguments(new com.intellij.database.jdbc.wrappers.DatabaseMetaDataWrapper.Schema("MixedCase",null),null,
                 r -> r.name.equals("FN_AGE") ? DasRoutine.Kind.FUNCTION : DasRoutine.Kind.PROCEDURE)) {
             for(var routine:com.intellij.util.containers.JBIterable.once(arguments)) {
                 var list=signatures.computeIfAbsent((routine.pkg==null?"":routine.pkg+".")+routine.name,k -> new ArrayList<>());
                 var group=arguments.groupIt();
                 while(group.hasNext()) {
                     var a=group.next();
-                    var type=com.intellij.database.dialects.base.introspector.jdbc.JdbcIntrospectorHelper.makeDasType(a.typeName,a.length,a.scale,a.typeSuffix,a.type,schema).getSpecification();
+                    var type=com.intellij.database.jdbc.JdbcIntrospectorHelper.makeDasType(a.typeName,a.length,a.scale,a.typeSuffix,a.type,schema).getSpecification();
                     list.add(a.direction + " " + (a.name==null?"":a.name+" ") + type);
                 }
             }

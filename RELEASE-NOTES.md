@@ -1,58 +1,76 @@
-# Tibero Database Tools 0.7.8-rc.1
+# Tibero Database Tools 0.7.8 / 0.7.9
 
-Tibero Database Tools는 IntelliJ IDEA의 Database Tools에서 Tibero 객체 탐색, PL/SQL 개발, SQL 자동완성, 실행 계획 분석을 지원하는 무료 오픈소스 플러그인입니다.
+Tibero Database Tools extends IntelliJ IDEA's built-in Database Tools with Tibero-specific object exploration, PL/SQL development, SQL completion, and execution plan analysis.
 
-이번 버전에서는 DB 링크의 SQL 참조 해석과 정의 이동을 개선하고, IntelliJ IDEA 2026.1.5~2026.2.x 환경을 위한 호환성 변경 사항을 반영했습니다.
+This release improves database link navigation, IDE compatibility, and integration with public IntelliJ Platform APIs. It also introduces English-first documentation and provides a signed distribution package.
 
-## 주요 변경 사항
+## What's New
 
-- **DB 링크 SQL 참조 해석:** 수집된 `@SALES_LINK` 등의 링크 이름을 SQL에서 해석하고 생성 DDL로 이동하도록 개선했습니다.
-- **DB 링크 트리 탐색:** 링크 더블클릭·Enter로 DDL을 여는 동작을 개선했습니다.
-- **IDE 탐색 API 대응:** 최신 IntelliJ IDEA의 탐색 요청 API에 맞게 수정했습니다.
-- **IDE 호환성:** IntelliJ IDEA 2026.2의 Grid Core 의존성 분리를 반영했습니다.
-- **배포 구성:** IDE에서 설치할 수 있는 ZIP 배포 파일을 추가했습니다.
+### Database Link Navigation
 
-## 주요 제공 기능
+- Resolve known `@LINK` references in SQL and navigate to reconstructed database link DDL.
+- Open database link definitions by double-clicking a link or pressing Enter in the Database tool window.
+- Improve navigation behavior with the current IntelliJ IDEA navigation API.
+- Preserve database link catalogues and remote data source mappings across IDE restarts.
 
-이번 릴리스에서도 다음 Tibero 개발 기능을 함께 사용할 수 있습니다.
+### IDE Compatibility and Integration
 
-### 객체 탐색과 PL/SQL 개발
+- Replace six internal API usages with public alternatives for type metadata, application startup events, and Database tool window access.
+- Update the Grid Core dependency for IntelliJ IDEA 2026.2.
+- Maintain binary compatibility with supported IntelliJ IDEA 2026.1 and 2026.2 builds, as checked by Plugin Verifier.
 
-- 프로시저·함수·패키지 및 패키지 멤버 탐색, 인자·반환 타입과 오버로드 시그니처 자동완성
-- 저장 객체 소스 보기·편집 및 IDEA 2026.2의 Submit 연동
-- <strong>Tibero → Execute Routine…</strong>을 통한 PL/SQL 실행 블록 생성
-- DBMS_OUTPUT 수집과 `ALL_ERRORS` 기반 컴파일 오류 조회
+### Documentation and Distribution
 
-### 실행 계획과 카탈로그 조회
+- Make English the primary README language while retaining the Korean documentation in `README.ko.md`.
+- Update product descriptions and installation instructions.
+- Provide the signed distribution package, `tibero-database-tools-0.7.8-signed.zip`, for release.
 
-- **Explain Plan:** 트리·표·다이어그램, 객체·비용·예상 행 수·ACCESS/FILTER 조건 확인
-- **Explain Analyse:** SELECT/WITH를 실제 실행하고 전체 fetch 후 실제 행 수·실행 시간·Starts·Buffer Gets 확인
-- **Tibero 카탈로그 메뉴:** 객체 정의, 루틴 인자, 의존 객체, 트리거, 시노님, 시퀀스, 권한 등을 조회할 SQL을 새 콘솔에 준비
+## Features
 
-### DB 링크와 SQL 작성
+| Feature | Description |
+|---|---|
+| Database Object Exploration | Browse procedures, functions, packages, package members, sequences, parameters, and overloaded signatures. |
+| Stored Object Sources | View and edit procedure, function, package, and view sources. Submit integration is available in IDEA 2026.2. |
+| PL/SQL Development | Generate routine execution blocks, collect DBMS_OUTPUT, and inspect compilation errors. |
+| Execution Plans | Explore estimated plans with tree, table, and diagram views. Explain Analyse executes SELECT/WITH queries and displays actual execution statistics. |
+| Database Links | Browse private/PUBLIC links, open reconstructed DDL, and complete mapped remote tables and columns. |
+| Catalogue Queries | Prepare SQL to inspect definitions, dependencies, triggers, synonyms, sequences, and privileges. |
+| SQL and JDBC Integration | Oracle SQL/PLSQL dialect integration, synonym resolution, and Tibero-specific metadata corrections. |
 
-- private/PUBLIC DB 링크 탐색 및 재구성된 생성 DDL 열기
-- DB 링크 이름, 매핑된 원격 테이블·컬럼 자동완성과 정의 이동
-- 원격 데이터 소스 매핑 및 IDE 재시작 후 설정 유지
-- Oracle SQL/PLSQL dialect, 시노님 참조 해석과 Tibero JDBC 메타데이터 보정
+## Installation and Getting Started
 
-## 설치
+**Supported IDE:** IntelliJ IDEA 2026.1.5–2026.2.x<br>
+**Required plugins:** Database Tools and SQL, Diagrams<br>
+**Plugin ID:** `io.github.kergosdyr.tibero.database.tools`
 
-**지원 IDE:** IntelliJ IDEA 2026.1.5~2026.2.x<br>
-**필수 플러그인:** Database Tools and SQL, Diagrams
+### Choose the Right Version
 
-1. 이 릴리스의 Assets에서 `tibero-database-tools-0.7.8-rc.1.zip` 또는 플러그인 JAR를 다운로드합니다.
-2. <strong>Settings → Plugins → ⚙ → Install Plugin from Disk…</strong>에서 파일을 설치합니다.
-3. IDE를 재시작하고 Tibero 데이터 소스에 별도 JDBC 드라이버 JAR를 등록합니다.
-4. 연결을 테스트한 뒤 필요한 스키마를 Refresh합니다.
+Tibero Database Tools provides the same features in two distributions to accommodate JDBC API changes in IntelliJ IDEA 2026.2.4.
 
-원격 SQL 자동완성은 실제 DB 링크 대상과 같은 원격 데이터 소스를 IDE에 등록하고, <strong>Map DB Link for Completion…</strong>에서 대상 소스와 기본 스키마를 순서대로 선택하여 사용합니다.
+| Plugin Version | Supported IntelliJ IDEA | Build Range | Distribution |
+|---|---|---|---|
+| **0.7.8** | 2026.1.5–2026.2.3 | `261.27258.48`–`262.10968.63` | `tibero-database-tools-0.7.8-signed.zip` |
+| **0.7.9** | 2026.2.4–2026.2.x | `262.11879.100`–`262.*` | `tibero-database-tools-0.7.9-signed.zip` |
 
-## 문서
+Both versions provide identical functionality and use the same plugin ID. When installing manually, choose the distribution matching your IDE version. JetBrains Marketplace selects the compatible plugin version for your IDE.
 
-- [Project overview (English)](https://github.com/kergosdyr/tibero-database-tools/blob/main/README.md)
-- [프로젝트 소개 및 설치 (한국어)](https://github.com/kergosdyr/tibero-database-tools/blob/main/README.ko.md)
-- [상세 사용 가이드](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/USAGE.ko.md)
-- [변경 기록](https://github.com/kergosdyr/tibero-database-tools/blob/main/CHANGELOG.md)
+### Installation Steps
 
-**License:** Apache 2.0 · [GitHub Repository](https://github.com/kergosdyr/tibero-database-tools)
+1. Enable **Database Tools and SQL** and **Diagrams** in IntelliJ IDEA.
+2. Download the ZIP matching your IDE version from [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases).
+3. If you have an earlier preview installed under `local.tibero.offline-poc`, uninstall it before installing the new version. Existing DB link catalogues and mappings are preserved.
+4. Open <strong>Settings → Plugins → ⚙ → Install Plugin from Disk…</strong>, select the downloaded ZIP, and restart the IDE.
+5. Configure a Tibero data source in the Database tool window, register a separately supplied **Tibero JDBC driver JAR** appropriate for your server, and test the connection.
+6. Select the schemas you want to work with and click **Refresh** to load their metadata.
+
+You can invoke basic code completion in SQL consoles with `Ctrl+Space`. The shortcut may vary depending on your IDE keymap.
+
+## Documentation
+
+- [README — English](https://github.com/kergosdyr/tibero-database-tools/blob/main/README.md)
+- [README — 한국어](https://github.com/kergosdyr/tibero-database-tools/blob/main/README.ko.md)
+- [User Guide — 한국어](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/USAGE.ko.md)
+- [API Compatibility Review](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/MARKETPLACE-REVIEW.md)
+- [Source Code and Issues](https://github.com/kergosdyr/tibero-database-tools)
+
+**License:** Apache License 2.0

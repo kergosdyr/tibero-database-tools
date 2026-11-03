@@ -9,23 +9,19 @@ Tibero Database Tools의 버전 관리, 배포 파일 생성, 호환성 검사 �
 플러그인 ID는 다음 값을 유지합니다.
 
 ```text
-local.tibero.offline-poc
+io.github.kergosdyr.tibero.database.tools
 ```
 
 기존 설치본과 업데이트 호환성을 유지하기 위한 식별자입니다.
 
-플러그인 버전과 IDE 호환성 범위는 다음 파일에서 관리합니다.
+플러그인 버전과 IDE 호환성 범위는 `release-profiles.json`에서 관리합니다. `resources/META-INF/plugin.xml`은 최신 API 프로필을 기준으로 작성하며, 빌드 스크립트가 선택된 프로필의 버전과 범위를 패키지에 반영합니다.
 
-```text
-resources/META-INF/plugin.xml
-```
+| API 프로필 | 버전 | 최소 빌드 | 최대 빌드 |
+|---|---|---|---|
+| `legacy` | 0.7.8 | `261.27258.48` | `262.10968.63` |
+| `current` | 0.7.9 | `262.11879.100` | `262.*` |
 
-0.7.8의 설정은 다음과 같습니다.
-
-```xml
-<version>0.7.8</version>
-<idea-version since-build="261.27258.48" until-build="262.*"/>
-```
+IDE 2026.2.4에서 JDBC API 패키지 경로가 변경되었습니다. 두 배포본은 같은 구현과 플러그인 ID를 사용하며 호환 범위가 겹치지 않습니다. Marketplace에는 두 버전을 모두 업로드합니다.
 
 ### 배포 파일
 
@@ -47,7 +43,8 @@ resources/META-INF/plugin.xml
 
 릴리스를 만들 때 다음 파일을 확인합니다.
 
-- `resources/META-INF/plugin.xml`: 버전과 IDE 호환성
+- `release-profiles.json`: API 프로필별 버전과 IDE 호환성
+- `resources/META-INF/plugin.xml`: 최신 프로필 메타데이터와 소개문
 - `CHANGELOG.md`: 변경된 기능 및 수정 사항
 - `README.md`: 영문 설치와 주요 기능 안내
 - `README.ko.md`: 한국어 설치와 주요 기능 안내
@@ -59,13 +56,16 @@ resources/META-INF/plugin.xml
 
 ### 배포용 빌드
 
-지원하는 가장 낮은 IDE SDK를 지정하여 빌드합니다.
+각 API 프로필에서 지원하는 가장 낮은 IDE SDK를 지정하여 별도 경로에 빌드합니다.
 
 ```sh
-export TIBERO_POC_IDE='/path/to/idea-2026.1.5/Contents'
 export TIBERO_POC_DRIVER='/path/to/licensed/tibero6-jdbc.jar'
 
-python3 build.py
+TIBERO_POC_IDE='/path/to/idea-2026.1.5/Contents' \
+TIBERO_POC_BUILD=build/legacy python3 build.py
+
+TIBERO_POC_IDE='/path/to/idea-2026.2.4/Contents' \
+TIBERO_POC_BUILD=build/current python3 build.py
 ```
 
 JDBC 회귀 검사를 포함하려면 라이선스를 보유한 드라이버를 지정합니다.
@@ -130,7 +130,7 @@ python3 check-compatibility.py \
 
 바이너리 호환성 오류와 내부·실험·폐기 예정 API 경고를 구분하여 확인합니다. 내부 API는 [공식 교체 및 예외 목록](https://plugins.jetbrains.com/docs/intellij/api-internal.html)을 참고합니다.
 
-IDE 2026.2에서 분리된 Grid Core 의존성도 검사 대상에 포함합니다.
+0.7.8은 2026.1.5와 2026.2.3에서, 0.7.9는 2026.2.4에서 검사합니다. 각 서명 ZIP을 Verifier의 `check-plugin`에 전달하여 실제 배포 파일을 확인합니다. IDE 2026.2에서 분리된 Grid Core 의존성도 검사 대상에 포함합니다.
 
 지원 IDE의 빌드 범위는 [JetBrains Build Number Ranges](https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html)를 참고합니다.
 
@@ -175,7 +175,7 @@ sha256sum build/tibero-intellij-poc.jar
 
 ## 5. GitHub Releases 게시
 
-1. `plugin.xml`과 `CHANGELOG.md`의 버전을 일치시킵니다.
+1. `release-profiles.json`, `plugin.xml`, `CHANGELOG.md`의 버전과 호환 범위를 확인합니다.
 2. 최종 빌드 및 호환성 검사를 완료합니다.
 3. 배포 ZIP과 JAR의 체크섬을 기록합니다.
 4. Git 태그를 생성합니다.
@@ -200,7 +200,7 @@ Tibero Database Tools를 JetBrains Marketplace에 게시하기 위한 준비 사
 | 항목 | 내용 |
 |---|---|
 | Plugin name | Tibero Database Tools |
-| Vendor | `kergosdyr` (게시자 프로필에서 확정) |
+| Vendor | `kergosdyr` |
 | Price | Free |
 | License | Apache License 2.0 |
 | Source code | https://github.com/kergosdyr/tibero-database-tools |
