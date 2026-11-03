@@ -121,7 +121,8 @@ final class TiberoRoutineCatalog {
                 routine.setRoutineKind(signature.kind()); routine.setComment(comments.get(signature.key().name()));
                 for(var p:signature.parameters()) {
                     var a=p.direction()==ArgumentDirection.RETURN?routine.createOrGetReturnArgument():routine.getArguments().createNewOne();
-                    a.setName(p.name()); a.setPosition((short)p.position()); a.setArgumentDirection(p.direction()); a.setDataType(p.type());
+                    a.setName(p.name()); a.setPosition((short)p.position()); a.setArgumentDirection(p.direction());
+                    a.setStoredType(com.intellij.database.types.DasTypeUtilsKt.getTypeSystem(a).createDasType(p.type()));
                     a.setSyncPending(false);
                 }
             }

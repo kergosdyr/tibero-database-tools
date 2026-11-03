@@ -26,7 +26,6 @@ public final class TiberoSourceEditing implements Disposable {
     }
     public static final class Startup implements com.intellij.ide.AppLifecycleListener {
         @Override public void appFrameCreated(List<String> args) { install(); }
-        @Override public void appStarted() { install(); }
     }
     static void install() { ApplicationManager.getApplication().getService(TiberoSourceEditing.class); }
     static boolean supported() { return ApplicationInfo.getInstance().getBuild().getBaselineVersion()>=VERIFIED_BASELINE; }

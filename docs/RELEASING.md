@@ -20,10 +20,10 @@ local.tibero.offline-poc
 resources/META-INF/plugin.xml
 ```
 
-0.7.8-rc.1의 설정은 다음과 같습니다.
+0.7.8의 설정은 다음과 같습니다.
 
 ```xml
-<version>0.7.8-rc.1</version>
+<version>0.7.8</version>
 <idea-version since-build="261.27258.48" until-build="262.*"/>
 ```
 
@@ -183,10 +183,10 @@ sha256sum build/tibero-intellij-poc.jar
 6. ZIP, JAR 및 체크섬 파일을 첨부합니다.
 7. `RELEASE-NOTES.md`의 내용을 릴리스 본문에 반영합니다.
 
-버전 `0.7.8-rc.1`의 Git 태그 형식은 다음과 같습니다.
+버전 `0.7.8`의 Git 태그 형식은 다음과 같습니다.
 
 ```text
-v0.7.8-rc.1
+v0.7.8
 ```
 
 릴리스 본문에는 사용자가 필요한 정보를 바로 찾을 수 있도록 주요 변경 사항, 설치 방법, 지원 IDE 범위 및 사용 가이드 링크를 배치합니다.

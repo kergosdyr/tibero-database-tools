@@ -8,6 +8,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.util.ui.tree.ExpandOnDoubleClick;
 import javax.swing.JTree;
@@ -28,8 +29,9 @@ public final class TiberoDbLinkTreeNavigation implements StartupActivity.DumbAwa
         ApplicationManager.getApplication().invokeLater(()-> {
             if(project.isDisposed()) return;
             var view=DatabaseView.getDatabaseViewIfVisible(project);
-            if(view==null || view.getPanelIfAny()==null) return;
-            var tree=com.intellij.util.ui.UIUtil.findComponentOfType(view.getPanelIfAny(),JTree.class);
+            var window=ToolWindowManager.getInstance(project).getToolWindow("Database");
+            if(view==null || window==null) return;
+            var tree=com.intellij.util.ui.UIUtil.findComponentOfType(window.getComponent(),JTree.class);
             if(tree==null || tree.getClientProperty(INSTALLED)!=null) return;
             install(tree,()-> {
                 var nodes=view.getSelectedNodes().toList();

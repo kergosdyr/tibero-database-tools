@@ -18,7 +18,6 @@ public final class TiberoSessions {
 
     public static final class Startup implements com.intellij.ide.AppLifecycleListener {
         @Override public void appFrameCreated(List<String> args) { install(); }
-        @Override public void appStarted() { install(); }
     }
     static void install() {
         if(!INSTALLED.compareAndSet(false,true)) return;

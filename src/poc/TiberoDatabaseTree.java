@@ -38,7 +38,6 @@ public final class TiberoDatabaseTree implements Disposable {
     }
     public static final class Startup implements com.intellij.ide.AppLifecycleListener {
         @Override public void appFrameCreated(List<String> args) { install(); }
-        @Override public void appStarted() { install(); }
     }
     @Override public void dispose() {}
     static void install() { com.intellij.openapi.application.ApplicationManager.getApplication().getService(TiberoDatabaseTree.class); }

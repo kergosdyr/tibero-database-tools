@@ -114,7 +114,7 @@ Tibero의 SQL 및 JDBC 메타데이터 특성을 IDE에 반영하여 객체 참�
 ## 설치 및 시작
 
 **지원 IDE:** IntelliJ IDEA 2026.1.5 ~ 2026.2.x<br>
-**현재 버전:** `0.7.8-rc.1`
+**현재 버전:** `0.7.8`
 
 1. IntelliJ IDEA에서 **Database Tools and SQL**과 **Diagrams**를 활성화합니다.
 2. [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases)에서 설치용 ZIP 또는 JAR를 다운로드합니다.

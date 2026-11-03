@@ -2,6 +2,14 @@
 
 Tibero Database Tools의 버전별 주요 변경 사항입니다.
 
+## 0.7.8
+
+- **DB 링크 탐색 개선:** SQL의 `@LINK` 참조 해석과 생성 DDL 정의 이동, Database 도구 창의 더블클릭·Enter 탐색 및 최신 IDE 탐색 API 대응을 개선했습니다. 기존 링크 목록·원격 매핑의 저장 및 복원 기능을 유지합니다.
+- **공개 API 전환:** 내부 API 사용 6건을 공개 API로 교체했습니다. 타입 설정 2곳을 공개 stored-type API로 변경하고, 시작 이벤트 3곳의 내부 `appStarted` 등록을 제거하여 공개 `appFrameCreated`를 사용하도록 정리했으며, DB 링크 트리 접근 1곳을 공개 ToolWindow 컴포넌트 기반으로 변경했습니다.
+- **IDE 호환성:** IntelliJ IDEA 2026.2의 Grid Core 의존성 변경을 반영했습니다. Plugin Verifier에서 IDE 261/262 바이너리 호환 판정을 확인했으며, 내부 API 경고는 15건에서 9건으로 감소했습니다. 남은 9건은 Tibero 메타데이터 수집에 사용하는 내부 `com.intellij.database.introspector` 확장점과 관련 메서드입니다.
+- **영문·한글 문서:** 영문 `README.md`를 기본 소개문으로 구성하고 기존 한국어 내용을 `README.ko.md`로 유지했습니다. 제품 설명과 릴리스 안내를 정리했습니다.
+- **배포 구성:** 서명 배포용 파일명을 `tibero-database-tools-0.7.8-signed.zip`으로 지정했습니다. 최신 소개문과 호환성 정보를 반영한 최종 ZIP을 빌드하고 서명·검증했습니다.
+
 ## 0.7.8-rc.1
 
 ### DB 링크 탐색 및 SQL 참조 해석

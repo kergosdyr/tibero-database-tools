@@ -73,6 +73,6 @@ final class TiberoColumnTypes {
         else if(name.equals("NUMBER") && size==0 && scale==0) size=-1;                             // NUMBER(0)
         else return;
         var fixed=JdbcIntrospectorHelper.makeDasType(stored.typeName,size,scale,stored.suffix,stored.jdbcType,column);
-        if(!fixed.getSpecification().equals(stored.getSpecification())) column.setDataType(fixed.toDataType());
+        if(!fixed.getSpecification().equals(stored.getSpecification())) column.setStoredType(fixed);
     }
 }

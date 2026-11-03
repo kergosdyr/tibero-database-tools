@@ -114,7 +114,7 @@ These integrations help you use the IDE's completion and navigation features whe
 ## Installation and Getting Started
 
 **Supported IDE:** IntelliJ IDEA 2026.1.5–2026.2.x<br>
-**Current version:** `0.7.8-rc.1`
+**Current version:** `0.7.8`
 
 1. Enable **Database Tools and SQL** and **Diagrams** in IntelliJ IDEA.
 2. Download the plugin ZIP or JAR from [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases).

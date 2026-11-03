@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>local.tibero.offline-poc</id>
   <name>Tibero Database Tools</name>
-  <version>0.7.8-rc.1</version>
+  <version>0.7.8</version>
   <vendor url="https://github.com/kergosdyr/tibero-database-tools">kergosdyr</vendor>
   <description><![CDATA[
     <p>
@@ -66,8 +66,9 @@
     </p>
   ]]></description>
   <change-notes><![CDATA[
-    Resolves DB link names in SQL, removing false unresolved-link errors. Fixes Database tree double-click
-    navigation and the current IDE navigation API. Retains persisted link catalogues and remote mappings.
+    Improves DB link resolution and DDL navigation with persistent remote mappings.
+    Uses public APIs for type updates, startup events, and Database tool window access.
+    Includes expanded English and Korean documentation and supports IntelliJ IDEA 2026.1.5–2026.2.x.
   ]]></change-notes>
   <idea-version since-build="261.27258.48" until-build="262.*"/>
   <depends>com.intellij.modules.platform</depends>
