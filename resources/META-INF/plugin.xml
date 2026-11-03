@@ -1,0 +1,62 @@
+<idea-plugin>
+  <id>local.tibero.offline-poc</id>
+  <name>Tibero Database Tools</name>
+  <version>0.7.8-rc.1</version>
+  <vendor url="https://github.com/kergosdyr/tibero-database-tools">kergosdyr</vendor>
+  <description><![CDATA[
+    Tibero integration for the built-in Database Tools: DB link definitions, persistent remote metadata mappings,
+    SQL completion and navigation, stored object sources, and estimated/actual execution plans.
+    Remote table and column completion requires an explicitly mapped, introspected data source.
+    This release candidate has been tested with an in-process mock JDBC server; live Tibero 6/7 validation is pending.
+    Independently developed; not affiliated with TmaxTibero or JetBrains. Tibero JDBC drivers are not included.
+  ]]></description>
+  <change-notes><![CDATA[
+    Resolves DB link names in SQL, removing false unresolved-link errors. Fixes Database tree double-click
+    navigation and the current IDE navigation API. Retains persisted link catalogues and remote mappings.
+  ]]></change-notes>
+  <idea-version since-build="261.27258.48" until-build="262.*"/>
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.database</depends>
+  <depends>com.intellij.diagram</depends>
+  <!-- Grid classes moved out of Database Tools in 262; 261 provides them through Database Tools. -->
+  <depends optional="true" config-file="tibero-grid.xml">intellij.grid.core.plugin</depends>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="poc.TiberoDatabaseTree"/>
+    <applicationService serviceImplementation="poc.TiberoDbLinkStore"/>
+    <postStartupActivity implementation="poc.TiberoDbLinkTreeNavigation"/>
+    <!-- Registers source editor Submit support (script generator, SQL object builder) on verified IDE builds only. -->
+    <applicationService serviceImplementation="poc.TiberoSourceEditing"/>
+    <completion.contributor language="SQL" implementationClass="poc.TiberoRoutineCompletion"/>
+    <!-- Tibero speaks Oracle SQL/PL/SQL. Consoles follow the driver dialect, which TiberoSessions switches from GenericSQL. -->
+    <sql.dialect dbms="TIBERO" implementationClass="com.intellij.sql.dialects.oracle.OraDialect"/>
+    <!-- Unqualified names through PUBLIC/session synonyms; the Generic model has no synonym objects. -->
+    <sql.resolveExtension implementation="poc.TiberoDbLinkResolve"/>
+    <sql.resolveExtension implementation="poc.TiberoSynonymResolve"/>
+    <completion.contributor language="SQL" implementationClass="poc.TiberoDbLinkCompletion"/>
+    <applicationService serviceImplementation="poc.TiberoSynonyms"/>
+    <appStarter id="tiberoPocCheck" implementation="poc.VerifyStarter"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.intellij.database">
+    <jdbcMetadataWrapper dbms="TIBERO" implementationClass="poc.TiberoMetadataWrapper$Factory"/>
+    <introspector dbms="TIBERO" implementationClass="poc.TiberoIntrospector$Factory"/>
+    <explainPlanProvider dbms="TIBERO" implementationClass="poc.TiberoExplainProvider"/>
+    <jdbcSourceLoader dbms="TIBERO" implementationClass="poc.TiberoViewLoader"/>
+    <executionEnvironmentHelper dbms="TIBERO" implementationClass="poc.TiberoExecutionEnvironment"/>
+  </extensions>
+  <applicationListeners>
+    <listener class="poc.TiberoDatabaseTree$Startup" topic="com.intellij.ide.AppLifecycleListener"/>
+    <listener class="poc.TiberoSessions$Startup" topic="com.intellij.ide.AppLifecycleListener"/>
+    <listener class="poc.TiberoSourceEditing$Startup" topic="com.intellij.ide.AppLifecycleListener"/>
+  </applicationListeners>
+  <actions>
+    <action id="Tibero.MapDbLink" class="poc.TiberoDbLinkActions" text="Map DB Link for Completion…">
+      <add-to-group group-id="DatabaseViewPopupMenu" anchor="last"/>
+    </action>
+    <action id="Tibero.DbmsOutput" class="poc.TiberoDbmsOutput$Toggle">
+      <add-to-group group-id="Console.Jdbc.Left" anchor="after" relative-to-action="Console.DbmsOutput"/>
+    </action>
+    <group id="Tibero.Catalog" class="poc.CatalogActions" text="Tibero" popup="true">
+      <add-to-group group-id="DatabaseViewPopupMenu" anchor="last"/>
+    </group>
+  </actions>
+</idea-plugin>

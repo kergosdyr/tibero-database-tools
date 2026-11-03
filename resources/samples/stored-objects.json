@@ -1,0 +1,7 @@
+[
+  {"owner":"MixedCase","name":"Fn","type":"FUNCTION","status":"VALID"},
+  {"owner":"MixedCase","name":"Proc","type":"PROCEDURE","status":"INVALID"},
+  {"owner":"MixedCase","name":"Pkg","type":"PACKAGE","status":"VALID"},
+  {"owner":"MixedCase","name":"Pkg","type":"PACKAGE BODY","status":"INVALID"},
+  {"owner":"MixedCase","name":"EmptyPkg","type":"PACKAGE","status":"VALID"}
+]

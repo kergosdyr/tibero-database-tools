@@ -1,0 +1,55 @@
+name: Verify
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TIBERO_POC_IDE: ${{ github.workspace }}/.sdk
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.13'
+      - name: Download the minimum supported SDK
+        run: |
+          mkdir -p .sdk
+          curl --fail --location --retry 3 https://download.jetbrains.com/idea/idea-2026.1.5.tar.gz -o "$RUNNER_TEMP/idea.tar.gz"
+          tar -xzf "$RUNNER_TEMP/idea.tar.gz" -C .sdk --strip-components=1
+      - name: Build and run offline tests
+        run: python3 build.py
+      - name: Run isolated IDE tests
+        env:
+          TIBERO_POC_SKIP_BUILD: '1'
+        run: python3 verify-ide.py
+      - name: Verify persistence across IDE processes
+        env:
+          TIBERO_POC_SKIP_BUILD: '1'
+          TIBERO_POC_SANDBOX: ${{ github.workspace }}/build/persistence
+        run: |
+          TIBERO_POC_PERSISTENCE_PHASE=write python3 verify-ide.py
+          TIBERO_POC_PERSISTENCE_PHASE=read python3 verify-ide.py
+      - name: Check release payload
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          jar = Path('build/tibero-intellij-poc.jar')
+          with zipfile.ZipFile(jar) as z:
+              assert not any('Verification' in n or 'VerifyStarter' in n or n.startswith(('mock/', 'com/tmax/', 'com/intellij/')) for n in z.namelist())
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: build-and-verification
+          path: |
+            build/distributions/*.zip
+            build/sandbox/result.txt
+            build/sandbox/log/idea.log
+          retention-days: 7

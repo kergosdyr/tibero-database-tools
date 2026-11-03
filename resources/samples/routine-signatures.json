@@ -1,0 +1,159 @@
+{
+  "provenance": "Synthetic fixture based on Tibero 7.2.6 catalogue definitions; member numbers deliberately differ from overload identifiers; no live DB capture.",
+  "objects": [
+    {
+      "name": "FN",
+      "type": "FUNCTION",
+      "invalid": false
+    },
+    {
+      "name": "PKG",
+      "type": "PACKAGE",
+      "invalid": false
+    }
+  ],
+  "members": [
+    {
+      "owner": "DEMO",
+      "object": "FN",
+      "name": null,
+      "member": "0",
+      "function": "YES"
+    },
+    {
+      "owner": "DEMO",
+      "object": "PKG",
+      "name": "CALC",
+      "member": "41",
+      "function": "YES"
+    },
+    {
+      "owner": "DEMO",
+      "object": "PKG",
+      "name": "CALC",
+      "member": "92",
+      "function": "YES"
+    },
+    {
+      "owner": "DEMO",
+      "object": "PKG",
+      "name": "RESET",
+      "member": "113",
+      "function": "NO"
+    },
+    {
+      "owner": "DEMO",
+      "object": "PKG",
+      "name": "RESET",
+      "member": "300",
+      "function": "NO"
+    },
+    {
+      "owner": "DEMO",
+      "object": "PKG",
+      "name": "READ_ITEM",
+      "member": "505",
+      "function": "NO"
+    }
+  ],
+  "arguments": [
+    {
+      "owner": "DEMO",
+      "name": "FN",
+      "pkg": null,
+      "overload": null,
+      "position": null,
+      "level": "0",
+      "argument": null,
+      "type": "NUMBER",
+      "direction": "OUT",
+      "typeOwner": null,
+      "typeName": null,
+      "typeSubname": null
+    },
+    {
+      "owner": "DEMO",
+      "name": "CALC",
+      "pkg": "PKG",
+      "overload": "1",
+      "position": null,
+      "level": "0",
+      "argument": null,
+      "type": "NUMBER",
+      "direction": "OUT",
+      "typeOwner": null,
+      "typeName": null,
+      "typeSubname": null
+    },
+    {
+      "owner": "DEMO",
+      "name": "CALC",
+      "pkg": "PKG",
+      "overload": "1",
+      "position": "1",
+      "level": "0",
+      "argument": "VALUE",
+      "type": "NUMBER",
+      "direction": "IN",
+      "typeOwner": null,
+      "typeName": null,
+      "typeSubname": null
+    },
+    {
+      "owner": "DEMO",
+      "name": "CALC",
+      "pkg": "PKG",
+      "overload": "8",
+      "position": null,
+      "level": "0",
+      "argument": null,
+      "type": "NUMBER",
+      "direction": "OUT",
+      "typeOwner": null,
+      "typeName": null,
+      "typeSubname": null
+    },
+    {
+      "owner": "DEMO",
+      "name": "CALC",
+      "pkg": "PKG",
+      "overload": "8",
+      "position": "1",
+      "level": "0",
+      "argument": "VALUE",
+      "type": "VARCHAR2",
+      "direction": "IN",
+      "typeOwner": null,
+      "typeName": null,
+      "typeSubname": null
+    },
+    {
+      "owner": "DEMO",
+      "name": "RESET",
+      "pkg": "PKG",
+      "overload": "4",
+      "position": "1",
+      "level": "0",
+      "argument": "COUNT",
+      "type": "NUMBER",
+      "direction": "IN/OUT",
+      "typeOwner": null,
+      "typeName": null,
+      "typeSubname": null
+    },
+    {
+      "owner": "DEMO",
+      "name": "READ_ITEM",
+      "pkg": "PKG",
+      "overload": null,
+      "position": "1",
+      "level": "0",
+      "argument": "ITEM",
+      "type": "RECORD",
+      "direction": "OUT",
+      "typeOwner": "DEMO",
+      "typeName": "PKG",
+      "typeSubname": "ITEM_T"
+    }
+  ]
+}
