@@ -49,7 +49,8 @@ resources/META-INF/plugin.xml
 
 - `resources/META-INF/plugin.xml`: 버전과 IDE 호환성
 - `CHANGELOG.md`: 변경된 기능 및 수정 사항
-- `README.md`: 설치와 주요 기능 안내
+- `README.md`: 영문 설치와 주요 기능 안내
+- `README.ko.md`: 한국어 설치와 주요 기능 안내
 - `docs/USAGE.ko.md`: 사용자 가이드
 - `docs/MARKETPLACE.md`: 영문 제품 소개 및 변경 사항
 - `RELEASE-NOTES.md`: GitHub 릴리스 설명
@@ -127,7 +128,7 @@ python3 check-compatibility.py \
 
 [JetBrains Plugin Verifier](https://github.com/JetBrains/intellij-plugin-verifier)를 사용합니다.
 
-바이너리 호환성 오류와 내부·실험·폐기 예정 API 경고를 구분하여 확인합니다.
+바이너리 호환성 오류와 내부·실험·폐기 예정 API 경고를 구분하여 확인합니다. 내부 API는 [공식 교체 및 예외 목록](https://plugins.jetbrains.com/docs/intellij/api-internal.html)을 참고합니다.
 
 IDE 2026.2에서 분리된 Grid Core 의존성도 검사 대상에 포함합니다.
 
@@ -192,31 +193,43 @@ v0.7.8-rc.1
 
 ## 6. JetBrains Marketplace 게시
 
-Marketplace 게시에는 플러그인 게시자 계정과 필요한 게시 권한이 사용됩니다.
+Tibero Database Tools를 JetBrains Marketplace에 게시하기 위한 준비 사항과 제출 절차입니다.
 
 ### 게시 정보
 
-- **Plugin name:** Tibero Database Tools
-- **Vendor:** kergosdyr
-- **License:** Apache License 2.0
-- **Price:** Free
-- **Source repository:** https://github.com/kergosdyr/tibero-database-tools
+| 항목 | 내용 |
+|---|---|
+| Plugin name | Tibero Database Tools |
+| Vendor | `kergosdyr` (게시자 프로필에서 확정) |
+| Price | Free |
+| License | Apache License 2.0 |
+| Source code | https://github.com/kergosdyr/tibero-database-tools |
 
-영문 소개문은 [MARKETPLACE.md](MARKETPLACE.md)를 사용합니다.
+### 게시 자료
 
-### 게시 절차
+- **영문 소개:** `docs/MARKETPLACE.md` 및 플러그인 설명 HTML
+- **프로젝트 문서:** 영문 `README.md`, 한국어 `README.ko.md`
+- **이미지:** 플러그인 아이콘과 `docs/images/`의 실제 IDE 스크린샷
+- **릴리스 정보:** 변경 사항, 버전, 지원 IDE 범위 및 설치 요구 사항
+- **배포 파일:** 최종 서명된 플러그인 ZIP
 
-1. JetBrains Marketplace 게시자 계정과 관련 약관을 확인합니다.
-2. 플러그인 이름, 설명, 카테고리 및 라이선스 정보를 설정합니다.
-3. 실제 IDE에서 촬영한 스크린샷을 등록합니다.
-4. 최종 배포물의 IDE 호환성과 의존성을 확인합니다.
-5. 게시 방식에 맞게 플러그인 서명 및 인증 정보를 준비합니다.
-6. Marketplace에 플러그인을 제출합니다.
-7. 게시 후 표시되는 소개문, 지원 버전과 설치 파일을 확인합니다.
+### 최초 게시 절차
 
-최초 제출 절차와 관련 요구 사항은 [JetBrains Publishing a Plugin](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html)을 참고합니다.
+1. **JetBrains 계정 로그인:** [JetBrains Marketplace](https://plugins.jetbrains.com/)에 개인 JetBrains 계정으로 로그인합니다.
+2. **Vendor 프로필 선택·생성:** 게시자 표시명을 `kergosdyr`로 설정하고 유효한 연락 이메일과 웹사이트를 등록합니다. Vendor ID는 생성 후 변경할 수 없으므로 신중하게 지정합니다. 개인의 실제 활동·사업 상황에 맞게 `trader` 또는 `non-trader` 상태를 신고하며, 무료 배포 여부만으로 판단하지 않습니다. [Vendor 프로필 안내](https://plugins.jetbrains.com/docs/marketplace/organizations.html)
+3. **개발자 약관 동의:** 최초 플러그인 게시 과정에서 JetBrains Marketplace Developer Agreement에 동의합니다.
+4. **제출 전 최종 확인:** 최종 ZIP에 소개문·버전·호환성 정보가 반영되었는지 확인하고 Plugin Verifier로 대상 IDE의 바이너리 호환성을 검사합니다. 플러그인 서명과 서명 확인에 관한 사항은 [Plugin Signing](https://plugins.jetbrains.com/docs/intellij/plugin-signing.html)을 참고합니다.
+5. **최초 플러그인 수동 업로드:** 계정 메뉴의 **Upload plugin**에서 Vendor를 선택하고 최종 서명 ZIP을 제출합니다. 영문이 먼저 나오는 제품 설명, 적절한 태그, 오픈소스 라이선스와 소스 링크, 아이콘·스크린샷, 변경 사항 및 지원 IDE 정보를 입력합니다. 최초 등록은 수동으로 진행합니다. [신규 플러그인 업로드](https://plugins.jetbrains.com/docs/marketplace/uploading-a-new-plugin.html)
+6. **심사 및 공개:** 제출된 플러그인은 자동 검사와 JetBrains Marketplace 팀의 수동 심사를 거치며, 승인 후 설정된 공개 상태에 따라 게시됩니다. [Marketplace 승인 기준](https://plugins.jetbrains.com/docs/marketplace/jetbrains-marketplace-approval-guidelines.html)
 
-의존성 선언은 [Plugin Dependencies](https://plugins.jetbrains.com/docs/intellij/plugin-dependencies.html)를 참고합니다.
+### 공개 시점과 후속 업데이트
+
+- **Hidden:** 공개 전에 심사를 받고 공개 시점을 별도로 정하려면 업로드 시 Hidden 옵션을 선택합니다.
+- **Custom Release Channel:** 테스트 또는 사전 배포용 버전은 별도 릴리스 채널로 관리할 수 있습니다. [업로드 옵션 안내](https://plugins.jetbrains.com/docs/marketplace/uploading-a-new-plugin.html)
+- **심사 일정:** 심사 완료 시점은 보장되지 않습니다. 업로드 후 **3~4영업일** 동안 응답이 없으면 `marketplace@jetbrains.com`으로 문의합니다. [승인 절차](https://plugins.jetbrains.com/docs/marketplace/jetbrains-marketplace-approval-guidelines.html)
+- **버전 업데이트:** 최초 등록 이후에는 Marketplace에서 수동으로 새 버전을 올리거나 게시 토큰을 이용한 자동화 방식으로 업데이트할 수 있습니다. [플러그인 게시 가이드](https://plugins.jetbrains.com/docs/intellij/publishing-plugin.html)
+
+서명 키와 게시 토큰은 저장소에 커밋하지 않고 별도로 관리합니다.
 
 ## 7. 보안 및 라이선스
 

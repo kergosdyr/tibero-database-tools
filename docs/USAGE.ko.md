@@ -227,4 +227,4 @@ Database 도구 창의 **Tibero** 메뉴에서 객체 정의, 의존 관계, 트
 | 소스나 패키지 멤버가 보이지 않음 | 해당 스키마 Refresh 및 카탈로그 조회 권한 |
 | 실행 계획을 조회할 수 없음 | `PLAN_TABLE`, 필요한 권한, 통계 수집 설정 |
 
-[프로젝트 소개](../README.md) · [개발 가이드](DEVELOPMENT.md) · [변경 기록](../CHANGELOG.md)
+[프로젝트 소개](../README.ko.md) · [개발 가이드](DEVELOPMENT.md) · [변경 기록](../CHANGELOG.md)

@@ -50,7 +50,8 @@ Tibero Database Tools는 IntelliJ IDEA의 Database Tools에서 Tibero 객체 탐
 
 ## 문서
 
-- [프로젝트 소개 및 설치](https://github.com/kergosdyr/tibero-database-tools/blob/main/README.md)
+- [Project overview (English)](https://github.com/kergosdyr/tibero-database-tools/blob/main/README.md)
+- [프로젝트 소개 및 설치 (한국어)](https://github.com/kergosdyr/tibero-database-tools/blob/main/README.ko.md)
 - [상세 사용 가이드](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/USAGE.ko.md)
 - [변경 기록](https://github.com/kergosdyr/tibero-database-tools/blob/main/CHANGELOG.md)
 

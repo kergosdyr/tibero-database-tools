@@ -73,7 +73,7 @@ Use Oracle SQL/PLSQL dialect integration, current-schema and PUBLIC synonym reso
 3. Register your Tibero JDBC driver, connect to the database, and refresh the required schemas.
 4. Open the Database tool window or a SQL console to begin working.
 
-See the [User Guide](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/USAGE.ko.md) for detailed setup and feature instructions.
+See the [User Guide (Korean)](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/USAGE.ko.md) for detailed setup and feature instructions.
 
 ## Requirements
 
