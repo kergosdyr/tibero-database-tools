@@ -64,7 +64,7 @@ DB 링크 이름 자동완성은 로컬 링크 목록을 사용합니다. 링크
 
 1. 로컬 데이터 소스의 `dblinks`에서 `SALES_LINK`를 선택합니다.
 2. 우클릭 메뉴 또는 **Find Action**에서 <strong>Map DB Link for Completion…</strong>을 실행합니다.
-3. 첫 번째 **DB Link Completion** 대화상자에서 **JDBC HR (mock Tibero)**를 선택하고 **OK**를 누릅니다.
+3. 첫 번째 **DB Link Completion** 대화상자에서 **원격 데이터 소스**를 선택하고 **OK**를 누릅니다.
 4. 다음 대화상자에서 기본 스키마 **HR**을 선택하고 **OK**를 누릅니다.
 
 ![DB Link Completion 대화상자에서 원격 데이터 소스를 선택한 화면](images/db-link-mapping.jpg)
@@ -74,8 +74,6 @@ DB 링크 이름 자동완성은 로컬 링크 목록을 사용합니다. 링크
 ![DB 링크의 기본 원격 스키마 HR을 선택한 화면](images/db-link-schema.jpg)
 
 *두 번째 단계: 자동완성에 사용할 기본 스키마 선택.*
-
-위 화면은 Mock JDBC 데모 환경을 기준으로 합니다. 실제 사용 환경에서는 DB 링크가 접속하는 원격 데이터 소스를 선택하세요.
 
 ## 5. SQL 자동완성 사용하기
 
@@ -115,7 +113,7 @@ SELECT o.CREATED_AT FROM ORDERS@SALES_LINK o;
 
 *원격 컬럼 자동완성을 선택해 `CREATED_AT`을 입력한 SQL.*
 
-데모의 `HR.ORDERS` 컬럼은 `ID`, `CUSTOMER_ID`, `AMOUNT`, `CREATED_AT`입니다.
+예제의 `HR.ORDERS` 컬럼은 `ID`, `CUSTOMER_ID`, `AMOUNT`, `CREATED_AT`입니다.
 
 ![DB 링크 트리와 원격 테이블·컬럼 참조가 표시된 SQL 콘솔](images/link-resolved.jpg)
 
@@ -167,6 +165,10 @@ SQL 콘솔의 Tibero DBMS_OUTPUT 토글은 세션에 `ENABLE`, `GET_LINE`, `DISA
 
 일반 **Explain Plan**은 예상 실행 계획을 IDE의 트리·표·다이어그램으로 보여줍니다. Raw 계획도 확인할 수 있습니다.
 
+![Explain Plan의 트리와 단계별 상세 정보](images/explain-plan.jpg)
+
+![실행 계획 다이어그램](images/explain-plan-diagram.jpg)
+
 `PLAN_TABLE`과 EXPLAIN/SELECT/DELETE 권한이 필요합니다. 플러그인은 요청별 `STATEMENT_ID`로 계획을 구분하고 해당 요청의 행을 정리합니다. Raw 계획 조회에서는 행이 남을 수 있습니다.
 
 `PLAN_TABLE`은 미리 준비해야 하며, 기존 세션의 트랜잭션 및 auto-commit 설정을 확인하여 사용하세요.
@@ -186,7 +188,34 @@ ALTER SESSION SET GATHER_SQL_EXEC_TIME = Y;
 
 통계 조회에 실패하더라도 대상 SELECT는 이미 실행되었을 수 있습니다. SELECT에서 호출하는 사용자 정의 함수의 부작용에도 유의하세요.
 
-## 9. 문제 해결
+## 9. 객체 관련 정보 빠르게 조회하기
+
+Database 도구 창의 **Tibero** 메뉴에서 객체 정의, 의존 관계, 트리거, 권한 등 다양한 카탈로그 정보를 조회할 수 있습니다.
+
+### 사용 방법
+
+1. **Database** 도구 창에서 조회할 스키마 또는 객체를 선택합니다.
+2. 우클릭 메뉴에서 **Tibero**를 열고 원하는 조회 항목을 선택합니다.
+3. 새 SQL 콘솔에 준비된 조회 SQL을 확인하고 실행합니다.
+
+선택한 스키마나 객체에 맞는 SQL이 자동으로 준비되며, 필요한 경우 조회 조건을 수정한 뒤 실행할 수 있습니다.
+
+### 제공 메뉴
+
+| 기능 묶음 | 실제 메뉴 이름 | 조회할 내용 |
+|---|---|---|
+| 스키마 객체 탐색 | `Schema Stored Objects` | 스키마에 속한 프로시저·함수·패키지 등 저장 객체 |
+| 객체 정의와 타입 | `View Definition`, `Column Types` | 뷰 정의와 테이블 컬럼의 데이터 타입 |
+| 루틴과 소스 | `Routine Arguments`, `Object Source`, `Package Body` | 루틴 인자·반환 타입, 객체 소스, 패키지 본문 |
+| 컴파일 오류와 의존 관계 | `Compilation Errors`, `Dependencies`, `Dependent Objects` | 컴파일 오류, 해당 객체가 참조하는 객체, 해당 객체를 참조하는 객체 |
+| 트리거와 스키마 정보 | `Table Triggers`, `Schema Synonyms`, `Schema Sequences` | 테이블 트리거, 스키마 시노님 및 시퀀스 |
+| 객체 권한 | `Object Privileges` | 객체에 부여된 접근 권한 정보 |
+
+예를 들어 프로시저를 수정한 뒤 **Compilation Errors**로 컴파일 오류를 확인하거나, **Dependencies**와 **Dependent Objects**로 객체 간 참조 관계를 조사할 수 있습니다.
+
+각 메뉴는 카탈로그 조회 SQL을 새 콘솔에 준비합니다. 조회 결과는 사용자가 해당 SQL을 실행하여 확인합니다.
+
+## 10. 문제 해결
 
 | 증상 | 확인할 사항 |
 |---|---|

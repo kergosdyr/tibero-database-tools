@@ -4,11 +4,66 @@
   <version>0.7.8-rc.1</version>
   <vendor url="https://github.com/kergosdyr/tibero-database-tools">kergosdyr</vendor>
   <description><![CDATA[
-    Tibero integration for the built-in Database Tools: DB link definitions, persistent remote metadata mappings,
-    SQL completion and navigation, stored object sources, and estimated/actual execution plans.
-    Remote table and column completion requires an explicitly mapped, introspected data source.
-    This release candidate has been tested with an in-process mock JDBC server; live Tibero 6/7 validation is pending.
-    Independently developed; not affiliated with TmaxTibero or JetBrains. Tibero JDBC drivers are not included.
+    <p>
+      <strong>Tibero Database Tools</strong> brings Tibero database development
+      features to IntelliJ IDEA's built-in Database Tools. Explore database
+      objects, develop PL/SQL, complete SQL references, and analyze execution
+      plans in a familiar IDE environment. Free and open source under the
+      Apache License 2.0 license.
+    </p>
+
+    <ul>
+      <li>
+        <strong>Object Exploration and Completion:</strong>
+        Browse procedures, functions, packages, package members, and sequences.
+        Complete package members with parameter lists, IN/OUT modes, return
+        types, and overloaded signatures.
+      </li>
+      <li>
+        <strong>Stored Object Editing:</strong>
+        View and edit procedures, functions, package specifications and bodies,
+        and views. CREATE OR REPLACE editing with Submit integration is
+        available in IntelliJ IDEA 2026.2.
+      </li>
+      <li>
+        <strong>PL/SQL Development:</strong>
+        Generate editable routine execution blocks with parameters, OUT
+        variables, and return values. Capture DBMS_OUTPUT messages and inspect
+        compilation errors with line and column details.
+      </li>
+      <li>
+        <strong>Execution Plan Analysis:</strong>
+        Explore estimated plans using native tree, table, and diagram views,
+        including costs, estimated rows, and access/filter predicates.
+        Explain Analyse executes SELECT/WITH queries and displays actual rows,
+        execution time, Starts, and Buffer Gets.
+      </li>
+      <li>
+        <strong>Database Links and Remote Completion:</strong>
+        Browse private and PUBLIC links, open reconstructed DDL, and navigate
+        to definitions. Complete remote tables and columns by mapping each
+        link to a separately registered and refreshed remote data source
+        and schema. Mappings persist across IDE restarts.
+      </li>
+      <li>
+        <strong>Catalogue Query Shortcuts:</strong>
+        Prepare SQL queries in a new console to inspect object definitions,
+        routine arguments, dependencies, dependent objects, triggers,
+        synonyms, sequences, compilation errors, and object privileges.
+      </li>
+      <li>
+        <strong>Tibero SQL and JDBC Integration:</strong>
+        Use Oracle SQL/PLSQL dialect integration, current-schema and PUBLIC
+        synonym resolution, and improved Tibero function argument and
+        JDBC data type metadata.
+      </li>
+    </ul>
+
+    <p>
+      <strong>Requirements:</strong> IntelliJ IDEA 2026.1.5–2026.2.x,
+      Database Tools and SQL, Diagrams, and a separately supplied
+      Tibero JDBC driver JAR.
+    </p>
   ]]></description>
   <change-notes><![CDATA[
     Resolves DB link names in SQL, removing false unresolved-link errors. Fixes Database tree double-click

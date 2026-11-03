@@ -3,45 +3,87 @@
 **Vendor:** kergosdyr<br>
 **Price:** Free<br>
 **License:** Apache License 2.0<br>
-**Source and support:** https://github.com/kergosdyr/tibero-database-tools
+**Source:** https://github.com/kergosdyr/tibero-database-tools
 
 ## Overview
 
-Tibero Database Tools extends IntelliJ IDEA's Database Tools with Tibero-specific object browsing, remote SQL completion, source navigation, and execution plans. Work in the familiar Database tool window and SQL consoles while exploring database links, stored programs, and query behavior.
+Tibero Database Tools brings Tibero-specific database development features to IntelliJ IDEA's built-in Database Tools.
+
+Explore stored procedures and packages, work with PL/SQL, inspect execution plans, and write SQL with database link and remote object completion. The plugin integrates with the familiar Database tool window, SQL consoles, source editors, and execution plan views.
+
+![Tibero stored objects, database links, and SQL editor in IntelliJ IDEA](images/link-resolved.jpg)
 
 ## Features
 
-- **Database links:** Browse private and PUBLIC links under your schemas. Double-click a link or navigate from its SQL reference to open a reconstructed `CREATE DATABASE LINK` statement.
-- **Remote completion:** Complete link names, mapped remote tables, and columns. Navigate from SQL references to their definitions using metadata collected by IntelliJ IDEA.
-- **Persistent mappings:** Keep link catalogues and remote data source mappings across IDE restarts. Refresh remote schemas to pick up changes.
-- **Stored objects:** Explore procedures, functions, packages, package members, arguments, return types, and sources. Tibero-specific handling improves function argument metadata and selected JDBC type displays.
-- **Source and console tools:** Open procedure, function, package, and view sources. IntelliJ IDEA 2026.2 supports source editing with Submit. Generate routine execution blocks and use Tibero DBMS_OUTPUT and compilation error lookup.
-- **Execution plans:** Inspect estimated plans in tree, table, or diagram views, open raw plans, and use Explain Analyse to collect execution statistics.
+### Database Objects and Code Completion
 
-For example, after mapping `SALES_LINK` to a remote data source containing `HR.ORDERS`, column completion can produce:
+Browse stored procedures, functions, packages, package members, and sequences.
 
-```sql
-SELECT o.CREATED_AT
-FROM ORDERS@SALES_LINK o;
-```
+Inspect routine parameters, `IN`, `OUT`, and `IN OUT` modes, return types, and overloaded signatures. Package member completion displays parameter lists and return types to help you select the appropriate routine while writing SQL.
 
-Link DDL is reconstructed from catalogue metadata. When executing the generated statement, replace `<PASSWORD_REQUIRED>` with the appropriate password. Explain Analyse actually executes a SELECT/WITH query and fetches its results; consider the query's cost and required database permissions.
+### Stored Object Sources
+
+Open and edit procedure, function, package specification, package body, and view sources.
+
+IntelliJ IDEA 2026.2 provides `CREATE OR REPLACE` source editing with Submit integration. Submit executes the DDL against the selected data source.
+
+### PL/SQL Development Tools
+
+Use **Tibero → Execute Routine…** to generate an editable PL/SQL execution block in a new console, including input parameters, OUT variables, and function return values.
+
+Additional tools include:
+
+- **DBMS_OUTPUT:** Collect PL/SQL output through a SQL console toggle.
+- **Compilation errors:** Display line, column, and error messages from `ALL_ERRORS` after `CREATE OR REPLACE`.
+
+### Execution Plan Analysis
+
+Inspect estimated execution plans using the IDE's native tree, table, and diagram views.
+
+Examine accessed objects, estimated costs and row counts, and ACCESS/FILTER predicates. Raw execution plans are also available.
+
+**Explain Analyse** executes a SELECT/WITH query, fetches all results, and associates execution statistics including actual rows, execution time, Starts, and Buffer Gets with the plan.
+
+![Execution plan tree and node details](images/explain-plan.jpg)
+
+![Execution plan diagram](images/explain-plan-diagram.jpg)
+
+### Database Links and Remote SQL
+
+Browse private and PUBLIC database links, open reconstructed creation DDL, and navigate from SQL link references to their definitions.
+
+Complete database link names, remote tables, and columns using explicitly mapped remote data sources and schemas. Remote object navigation and completion use metadata collected by the IDE. Link catalogues and mappings persist across restarts.
+
+For remote completion, register and refresh the actual link target as a separate data source, then map the link to that source and its default schema.
+
+### Catalogue Query Shortcuts
+
+Right-click a schema or object and open the **Tibero** menu to prepare catalogue queries in a new SQL console.
+
+Available actions cover stored objects, view definitions, column types, routine arguments, source code, package bodies, compilation errors, dependencies, dependent objects, table triggers, schema synonyms, sequences, and object privileges.
+
+### SQL and JDBC Integration
+
+Use Oracle SQL/PLSQL dialect integration, current-schema and PUBLIC synonym resolution, Tibero 6 function-argument metadata corrections, and improved display of selected JDBC types, including TIMESTAMP types.
 
 ## Getting Started
 
-1. Download the ZIP or JAR from [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases).
-2. Choose **Settings → Plugins → Install Plugin from Disk…** in IntelliJ IDEA, install the file, and restart.
-3. Register the Tibero JDBC driver JAR, connect to your Tibero database, and refresh the required schemas.
-4. For remote completion, register the actual link target as a separate data source and refresh its schema.
-5. Choose **Map DB Link for Completion…** on the link. Select the remote data source and confirm, then select its default schema and confirm.
-6. In the local Tibero SQL console, invoke completion (**Ctrl+Space** by default, depending on keymap), select an item, and press **Enter**.
+1. Download the plugin ZIP or JAR from [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases).
+2. Install it using **Settings → Plugins → Install Plugin from Disk…** and restart IntelliJ IDEA.
+3. Register your Tibero JDBC driver, connect to the database, and refresh the required schemas.
+4. Open the Database tool window or a SQL console to begin working.
 
-The [User Guide](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/USAGE.ko.md) walks through setup and SQL completion with IDE screenshots.
+See the [User Guide](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/USAGE.ko.md) for detailed setup and feature instructions.
 
 ## Requirements
 
-IntelliJ IDEA **2026.1.5–2026.2.x**, with **Database Tools and SQL** and **Diagrams** enabled, and a Tibero JDBC driver JAR appropriate for the server.
+- IntelliJ IDEA 2026.1.5–2026.2.x
+- Database Tools and SQL
+- Diagrams
+- Tibero JDBC driver JAR
 
-## Source and License
+## Open Source
 
-The project is open source under the **Apache License 2.0**. Explore the code, documentation, releases, and issues on [GitHub](https://github.com/kergosdyr/tibero-database-tools).
+Tibero Database Tools is available under the **Apache License 2.0**.
+
+Explore the source, documentation, releases, and issues on [GitHub](https://github.com/kergosdyr/tibero-database-tools).
