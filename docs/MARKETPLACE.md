@@ -1,36 +1,47 @@
-# Marketplace listing draft
+# Tibero Database Tools
 
-- **Name:** Tibero Database Tools
-- **Vendor:** kergosdyr
-- **Price:** Free
-- **License:** Apache License 2.0
-- **Source/support:** https://github.com/kergosdyr/tibero-database-tools
+**Vendor:** kergosdyr<br>
+**Price:** Free<br>
+**License:** Apache License 2.0<br>
+**Source and support:** https://github.com/kergosdyr/tibero-database-tools
 
-## Description
+## Overview
 
-Tibero Database Tools integrates Tibero with the IDE's built-in Database Tools interface.
+Tibero Database Tools extends IntelliJ IDEA's Database Tools with Tibero-specific object browsing, remote SQL completion, source navigation, and execution plans. Work in the familiar Database tool window and SQL consoles while exploring database links, stored programs, and query behavior.
 
-- Browse private and public database links and open reconstructed CREATE DATABASE LINK definitions.
-- Complete link names, mapped remote tables and columns, and navigate to their definitions.
-- Restore link catalogues and mappings across IDE restarts.
-- Inspect stored procedures, functions and packages with argument and return-type metadata.
-- View estimated and actual execution plans using the IDE's native tree and diagram.
-- Use Tibero DBMS_OUTPUT and compilation-error lookup in SQL consoles.
+## Features
 
-Remote table and column completion requires an explicitly mapped, introspected remote data source. JDBC drivers are supplied by the user. Database link passwords cannot be recovered; generated DDL contains a required-password placeholder.
+- **Database links:** Browse private and PUBLIC links under your schemas. Double-click a link or navigate from its SQL reference to open a reconstructed `CREATE DATABASE LINK` statement.
+- **Remote completion:** Complete link names, mapped remote tables, and columns. Navigate from SQL references to their definitions using metadata collected by IntelliJ IDEA.
+- **Persistent mappings:** Keep link catalogues and remote data source mappings across IDE restarts. Refresh remote schemas to pick up changes.
+- **Stored objects:** Explore procedures, functions, packages, package members, arguments, return types, and sources. Tibero-specific handling improves function argument metadata and selected JDBC type displays.
+- **Source and console tools:** Open procedure, function, package, and view sources. IntelliJ IDEA 2026.2 supports source editing with Submit. Generate routine execution blocks and use Tibero DBMS_OUTPUT and compilation error lookup.
+- **Execution plans:** Inspect estimated plans in tree, table, or diagram views, open raw plans, and use Explain Analyse to collect execution statistics.
 
-This release candidate was tested in IntelliJ IDEA 2026.1.5 and 2026.2.3 using offline/model tests and an in-process mock JDBC server. Live Tibero 6/7 server validation is still pending. It is not yet a stable Marketplace release.
+For example, after mapping `SALES_LINK` to a remote data source containing `HR.ORDERS`, column completion can produce:
 
-Independently developed; not affiliated with or endorsed by TmaxTibero or JetBrains.
+```sql
+SELECT o.CREATED_AT
+FROM ORDERS@SALES_LINK o;
+```
 
-## Screenshots
+Link DDL is reconstructed from catalogue metadata. When executing the generated statement, replace `<PASSWORD_REQUIRED>` with the appropriate password. Explain Analyse actually executes a SELECT/WITH query and fetches its results; consider the query's cost and required database permissions.
 
-Use `docs/images/link-resolved.png` and `docs/images/double-click-ddl.png` with captions identifying the Mock JDBC test environment. The DDL screenshot includes a password placeholder, not a recovered password or executable recreation script.
+## Getting Started
 
-## Change notes
+1. Download the ZIP or JAR from [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases).
+2. Choose **Settings → Plugins → Install Plugin from Disk…** in IntelliJ IDEA, install the file, and restart.
+3. Register the Tibero JDBC driver JAR, connect to your Tibero database, and refresh the required schemas.
+4. For remote completion, register the actual link target as a separate data source and refresh its schema.
+5. Choose **Map DB Link for Completion…** on the link. Select the remote data source and confirm, then select its default schema and confirm.
+6. In the local Tibero SQL console, invoke completion (**Ctrl+Space** by default, depending on keymap), select an item, and press **Enter**.
 
-0.7.8-rc.1 resolves DB link names in SQL, fixes double-click navigation and the latest IDE navigation request API, and declares the extracted Grid Core dependency. Persistent remote mappings and native SQL table/column completion remain available after restart.
+The [User Guide](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/USAGE.ko.md) walks through setup and SQL completion with IDE screenshots.
 
-## Submission state
+## Requirements
 
-Prepared for owner review. No Marketplace plugin entry, signing identity or upload token is assumed to exist. Do not claim real Tibero compatibility or publish as stable before completing `RELEASING.md`.
+IntelliJ IDEA **2026.1.5–2026.2.x**, with **Database Tools and SQL** and **Diagrams** enabled, and a Tibero JDBC driver JAR appropriate for the server.
+
+## Source and License
+
+The project is open source under the **Apache License 2.0**. Explore the code, documentation, releases, and issues on [GitHub](https://github.com/kergosdyr/tibero-database-tools).

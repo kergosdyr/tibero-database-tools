@@ -1,23 +1,40 @@
 # Changelog
 
+Tibero Database Tools의 버전별 주요 변경 사항입니다.
+
 ## 0.7.8-rc.1
 
-- Expose persisted DB link definitions as SQL PSI elements: known `@LINK` tokens resolve and navigate to reconstructed DDL.
-- Prefer source navigation on DB link tree leaves, retain expansion on groups, and handle the IDE's default navigation request API.
-- Exercise actual link tokens, the native double-click decision, and current navigation requests in regression tests.
-- Add mock JDBC remote tables and private/public links for console tests without synthetic PSI data-source injection.
-- Declare the extracted Grid Core dependency for newer IDEs.
-- Package an installable distribution ZIP and remove machine-specific build configuration from public instructions.
-- Narrow the advertised IDE range to 261.27258.48–262.*; retain the existing plugin ID for upgrades.
+### DB 링크 탐색 및 SQL 참조 해석
+
+- 수집된 DB 링크를 SQL PSI 참조 대상으로 연결하여 `@LINK` 이름을 해석하도록 개선했습니다.
+- SQL의 DB 링크 이름에서 재구성된 생성 DDL로 이동할 수 있도록 수정했습니다.
+- Database 도구 창에서 DB 링크를 더블클릭하거나 Enter를 누르면 생성 DDL을 열도록 개선했습니다.
+- DB 링크 그룹의 펼침 동작과 개별 링크의 소스 이동 동작을 구분했습니다.
+- 최신 IntelliJ IDEA의 탐색 요청 API에 맞게 DB 링크 이동 동작을 수정했습니다.
+
+### IDE 호환성 및 배포
+
+- IntelliJ IDEA 2026.2에서 분리된 Grid Core 플러그인 의존성을 반영했습니다.
+- 설치용 `tibero-database-tools-<version>.zip` 배포 파일을 추가했습니다.
+- 현재 버전의 IDE 호환성 범위를 2026.1.5(build 261.27258.48)부터 2026.2.x까지로 설정했습니다.
 
 ## 0.7.7
 
-- Persist DB link catalogues and remote data-source mappings in IDE settings.
-- Resolve mapped remote tables/columns; complete link/table names and use native SQL column completion.
-- Open reconstructed CREATE DATABASE LINK through Jump to Source.
-- Known defects corrected in 0.7.8-rc.1: unresolved link token and tree double-click navigation.
+### DB 링크와 원격 메타데이터
 
-## 0.7.6 and earlier
+- DB 링크 목록과 원격 데이터 소스 매핑을 IDE 설정에 저장하도록 추가했습니다.
+- IDE 재시작 후 DB 링크 및 매핑 정보를 복원하도록 구현했습니다.
+- 매핑된 원격 데이터 소스의 테이블과 컬럼을 SQL에서 해석하도록 추가했습니다.
+- DB 링크 이름과 원격 테이블 이름 자동완성을 추가했습니다.
+- 원격 컬럼 자동완성을 IDE의 SQL 완성 기능과 연동했습니다.
+- DB 링크에서 재구성된 생성 DDL로 이동하는 기능을 추가했습니다.
 
-- Native DB link tree presentation; stored objects, routine metadata, source editing and execution plans.
-- Earlier IDE compatibility claims apply only to the exact older artifacts, not to the current release candidate.
+## 0.7.6 및 이전 버전
+
+- Tibero DB 링크를 Database 도구 창에 표시하는 기능을 추가했습니다.
+- 프로시저, 함수, 패키지와 관련 메타데이터 탐색을 추가했습니다.
+- 루틴 인자 및 반환 타입 메타데이터 지원을 추가했습니다.
+- 저장 객체 소스 보기와 편집 기능을 추가했습니다.
+- Explain Plan과 Explain Analyse 연동 기능을 추가했습니다.
+- Tibero SQL 콘솔의 DBMS_OUTPUT 및 컴파일 오류 조회 기능을 추가했습니다.
+- JDBC 메타데이터와 일부 데이터 타입 표시 보정 기능을 추가했습니다.
