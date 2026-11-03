@@ -25,7 +25,7 @@ Tibero Database Tools는 IntelliJ IDEA의 Database Tools에서 Tibero를 편리�
 
 1. IntelliJ IDEA에서 **Database Tools and SQL**과 **Diagrams**를 활성화합니다.
 2. [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases)에서 `0.7.8-rc.1` ZIP 또는 JAR를 받습니다.
-3. **Settings → Plugins → ⚙ → Install Plugin from Disk…**에서 파일을 선택하고 IDE를 재시작합니다.
+3. <strong>Settings → Plugins → ⚙ → Install Plugin from Disk…</strong>에서 파일을 선택하고 IDE를 재시작합니다.
 4. Database 도구 창에서 **Tibero 데이터 소스**를 만들거나 기존 연결을 선택합니다.
 5. Tibero 드라이버 설정에 서버에 맞는 **JDBC JAR를 별도로 등록**하고 연결을 테스트합니다.
 6. 사용할 스키마를 선택한 뒤 **Refresh**하여 객체 정보를 가져옵니다.
@@ -40,7 +40,7 @@ DB 링크 이름은 로컬 스키마에서 수집합니다. 원격 테이블·�
 
 1. 로컬 Tibero 스키마를 **Refresh**하여 `dblinks` 목록을 확인합니다.
 2. 실제 링크 대상과 같은 원격 데이터 소스를 등록하고 필요한 스키마를 **Refresh**합니다.
-3. 링크를 선택한 뒤 **Map DB Link for Completion…**을 실행합니다.
+3. 링크를 선택한 뒤 <strong>Map DB Link for Completion…</strong>을 실행합니다.
 4. **DB Link Completion**에서 원격 데이터 소스를 선택해 **OK**, 이어서 기본 스키마를 선택해 **OK**를 누릅니다.
 
 로컬 Tibero SQL 콘솔에서 다음과 같이 작성할 수 있습니다.

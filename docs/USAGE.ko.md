@@ -63,7 +63,7 @@ DB 링크 이름 자동완성은 로컬 링크 목록을 사용합니다. 링크
 ### 4.2. DB 링크에 원격 소스와 스키마 지정
 
 1. 로컬 데이터 소스의 `dblinks`에서 `SALES_LINK`를 선택합니다.
-2. 우클릭 메뉴 또는 **Find Action**에서 **Map DB Link for Completion…**을 실행합니다.
+2. 우클릭 메뉴 또는 **Find Action**에서 <strong>Map DB Link for Completion…</strong>을 실행합니다.
 3. 첫 번째 **DB Link Completion** 대화상자에서 **JDBC HR (mock Tibero)**를 선택하고 **OK**를 누릅니다.
 4. 다음 대화상자에서 기본 스키마 **HR**을 선택하고 **OK**를 누릅니다.
 
@@ -127,7 +127,7 @@ SELECT o.CREATED_AT FROM ORDERS@SALES_LINK o;
 
 ## 6. 매핑 관리와 재시작 후 사용하기
 
-매핑을 바꾸려면 링크에서 **Map DB Link for Completion…**을 다시 실행합니다. 매핑을 제거할 때는 **Remove mapping**을 사용합니다.
+매핑을 바꾸려면 링크에서 <strong>Map DB Link for Completion…</strong>을 다시 실행합니다. 매핑을 제거할 때는 **Remove mapping**을 사용합니다.
 
 DB 링크의 HOST 또는 USERNAME이 변경되면 대상 데이터 소스와 스키마를 다시 지정하세요. 원격 데이터 소스를 삭제했거나 해당 스키마를 수집하지 않은 경우에도 매핑 설정을 확인해야 합니다.
 
@@ -151,7 +151,7 @@ DB 링크의 HOST 또는 USERNAME이 변경되면 대상 데이터 소스와 스
 ### 루틴 실행문 준비
 
 1. Database 도구 창에서 프로시저나 함수를 선택합니다.
-2. **Tibero → Execute Routine…**을 실행합니다.
+2. <strong>Tibero → Execute Routine…</strong>을 실행합니다.
 3. 새 SQL 콘솔에 생성된 PL/SQL 블록을 확인합니다.
 4. 입력 인자에 실제 값을 채워 실행합니다.
 
