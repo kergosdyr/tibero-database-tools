@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>io.github.kergosdyr.tibero.database.tools</id>
   <name>Tibero Database Tools</name>
-  <version>0.7.9</version>
+  <version>0.7.11</version>
   <vendor url="https://github.com/kergosdyr/tibero-database-tools">kergosdyr</vendor>
   <description><![CDATA[
     <p>
@@ -23,7 +23,7 @@
         <strong>Stored Object Editing:</strong>
         View and edit procedures, functions, package specifications and bodies,
         and views. CREATE OR REPLACE editing with Submit integration is
-        available in IntelliJ IDEA 2026.2.
+        available in IntelliJ IDEA 2026.1.5–2026.2.x.
       </li>
       <li>
         <strong>PL/SQL Development:</strong>
@@ -66,9 +66,14 @@
     </p>
   ]]></description>
   <change-notes><![CDATA[
-    Improves DB link resolution and DDL navigation with persistent remote mappings.
-    Uses public APIs for type updates, startup events, and Database tool window access.
-    Includes expanded English and Korean documentation and supports IntelliJ IDEA 2026.1.5–2026.2.x.
+    <p>Tibero Database Tools now integrates Tibero-specific metadata and database objects through public IntelliJ Platform APIs.</p>
+    <ul>
+      <li>Database links are represented as native objects in the Database tool window. Private links appear under their respective schemas; PUBLIC links appear under the PUBLIC schema.</li>
+      <li>Double-click, Enter, and SQL definition navigation open reconstructed link DDL. Remote table and column completion remain available through mapped remote data sources.</li>
+      <li>Migration preserves tables, columns, packages, routines, and selected schemas. The original cache is retained with a .tibero-generic-backup suffix.</li>
+      <li>Catalogue refreshes preserve previous data when collection fails or is cancelled.</li>
+      <li>Source editing and Submit integration are available across the supported IntelliJ IDEA versions, including 2026.1.5, 2026.2.3, and 2026.2.4.</li>
+    </ul>
   ]]></change-notes>
   <idea-version since-build="262.11879.100" until-build="262.*"/>
   <depends>com.intellij.modules.platform</depends>
@@ -77,7 +82,6 @@
   <!-- Grid classes moved out of Database Tools in 262; 261 provides them through Database Tools. -->
   <depends optional="true" config-file="tibero-grid.xml">intellij.grid.core.plugin</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="poc.TiberoDatabaseTree"/>
     <applicationService serviceImplementation="poc.TiberoDbLinkStore"/>
     <postStartupActivity implementation="poc.TiberoDbLinkTreeNavigation"/>
     <!-- Registers source editor Submit support (script generator, SQL object builder) on verified IDE builds only. -->
@@ -93,14 +97,15 @@
     <appStarter id="tiberoPocCheck" implementation="poc.VerifyStarter"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij.database">
+    <modelFacade dbms="TIBERO" implementationClass="poc.TiberoModelFacade"/>
     <jdbcMetadataWrapper dbms="TIBERO" implementationClass="poc.TiberoMetadataWrapper$Factory"/>
-    <introspector dbms="TIBERO" implementationClass="poc.TiberoIntrospector$Factory"/>
     <explainPlanProvider dbms="TIBERO" implementationClass="poc.TiberoExplainProvider"/>
     <jdbcSourceLoader dbms="TIBERO" implementationClass="poc.TiberoViewLoader"/>
     <executionEnvironmentHelper dbms="TIBERO" implementationClass="poc.TiberoExecutionEnvironment"/>
   </extensions>
   <applicationListeners>
-    <listener class="poc.TiberoDatabaseTree$Startup" topic="com.intellij.ide.AppLifecycleListener"/>
+    <listener class="poc.TiberoModelMigration" topic="com.intellij.database.dataSource.DataSourceModelStorage$Listener"/>
+    <listener class="poc.TiberoMetadataRefresh" topic="com.intellij.database.introspection.DatabaseModelLoader$Listener"/>
     <listener class="poc.TiberoSessions$Startup" topic="com.intellij.ide.AppLifecycleListener"/>
     <listener class="poc.TiberoSourceEditing$Startup" topic="com.intellij.ide.AppLifecycleListener"/>
   </applicationListeners>

@@ -1,7 +1,7 @@
 package poc;
 
 import com.intellij.database.dialects.generic.GenericDbms;
-import com.intellij.database.dialects.generic.model.*;
+import com.intellij.database.dialects.oracle.model.*;
 import com.intellij.database.model.DasRoutine;
 import com.intellij.database.model.MemoryTextStorage;
 import com.intellij.database.model.ModelFactory;
@@ -32,7 +32,7 @@ final class SourceEditVerification {
 
         String spec="CREATE OR REPLACE PACKAGE DEMO.HR_API AS\n  FUNCTION HEADCOUNT RETURN NUMBER;\n  PROCEDURE HIRE(p_name VARCHAR2);\nEND HR_API;";
         String body="CREATE OR REPLACE PACKAGE BODY DEMO.HR_API AS\n  FUNCTION HEADCOUNT RETURN NUMBER IS BEGIN RETURN 1; END;\n  PROCEDURE HIRE(p_name VARCHAR2) IS BEGIN NULL; END;\nEND HR_API;";
-        Function<GenericSchema,BasicModSourceAware> pkg=schema -> {
+        Function<OraSchema,BasicModSourceAware> pkg=schema -> {
             var p=schema.getPackages().createOrGet("HR_API");
             p.getRoutines().createOrGet("HEADCOUNT").setRoutineKind(DasRoutine.Kind.FUNCTION);
             p.getRoutines().createOrGet("HIRE").setRoutineKind(DasRoutine.Kind.PROCEDURE);
@@ -81,8 +81,8 @@ final class SourceEditVerification {
         });
         var model=new ModelFactory(new MemoryTextStorage()).createModel(GenericDbms.TIBERO);
         var loaded=new java.util.LinkedHashMap<String,String>();
-        model.modify(GenericRoot.class,root -> {
-            var schema=root.getDatabases().createOrGet("TEST").getSchemas().createOrGet("DEMO");
+        model.modify(OraRoot.class,root -> {
+            var schema=root.getSchemas().createOrGet("DEMO");
             var r=schema.getRoutines().createOrGet("RAISE_SALARY"); r.setRoutineKind(DasRoutine.Kind.PROCEDURE);
             for(BasicModSourceAware o:List.<BasicModSourceAware>of(r,schema.getPackages().createOrGet("HR_API"),schema.getViews().createOrGet("EMP_V"))) {
                 try { new TiberoViewLoader().loadSource(o,connection); } catch(Exception e) { throw new AssertionError(e); }
@@ -98,11 +98,11 @@ final class SourceEditVerification {
     private static <T> T proxy(Class<T> type,java.lang.reflect.InvocationHandler handler) {
         return (T)java.lang.reflect.Proxy.newProxyInstance(type.getClassLoader(),new Class<?>[]{type},handler);
     }
-    private static List<String> submit(Project project,Function<GenericSchema,BasicModSourceAware> create,String original,String edited) {
+    private static List<String> submit(Project project,Function<OraSchema,BasicModSourceAware> create,String original,String edited) {
         var model=new ModelFactory(new MemoryTextStorage()).createModel(GenericDbms.TIBERO);
         var object=new java.util.concurrent.atomic.AtomicReference<BasicModSourceAware>();
-        model.modify(GenericRoot.class,root -> {
-            var o=create.apply(root.getDatabases().createOrGet("TEST").getSchemas().createOrGet("DEMO"));
+        model.modify(OraRoot.class,root -> {
+            var o=create.apply(root.getSchemas().createOrGet("DEMO"));
             o.setSourceText(new SimpleCompositeText(original,CompositeText.Kind.ORIGINAL_TEXT));
             object.set(o);
         });
@@ -120,7 +120,8 @@ final class SourceEditVerification {
             var path=com.intellij.database.util.ObjectPaths.of(object.get());
             var task=DbSrcMigration.migrationTaskBuilder(project,db,List.of(com.intellij.openapi.util.Pair.create(path,(com.intellij.openapi.vfs.VirtualFile)file)),null);
             check(task!=null,"Migration task for " + path);
-            return List.of(ScriptGenerators.INSTANCE.makeScript(project,task.build()).getScriptStatementsTexts()).stream().map(String::strip).toList();
+            var result=List.of(ScriptGenerators.INSTANCE.makeScript(project,task.build()).getScriptStatementsTexts()).stream().map(String::strip).toList();
+            return result;
         } finally { manager.removeDataSource(source); }
     }
     private static void check(boolean condition,String message) { if(!condition) throw new AssertionError(message); }

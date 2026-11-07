@@ -91,7 +91,7 @@ for verification in [False, True]:
                 if not path.is_file():
                     continue
                 relative = path.relative_to(base).as_posix()
-                if not verification and relative.startswith(('poc/VerifyStarter', 'poc/StoredObjectsVerification', 'poc/RoutineVerification', 'poc/NativeTreeVerification', 'poc/SourceEditVerification', 'poc/DbLinkVerification')):
+                if not verification and relative.startswith(('poc/VerifyStarter', 'poc/StoredObjectsVerification', 'poc/MetadataRefreshVerification', 'poc/RoutineVerification', 'poc/NativeTreeVerification', 'poc/SourceEditVerification', 'poc/DbLinkVerification')):
                     continue
                 if relative == 'META-INF/plugin.xml':
                     production = ET.parse(path).getroot()

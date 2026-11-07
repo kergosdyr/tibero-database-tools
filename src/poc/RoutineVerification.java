@@ -1,7 +1,7 @@
 package poc;
 
 import com.intellij.database.dialects.generic.GenericDbms;
-import com.intellij.database.dialects.generic.model.*;
+import com.intellij.database.dialects.oracle.model.*;
 import com.intellij.database.model.*;
 import com.intellij.database.model.basic.*;
 import com.intellij.openapi.project.Project;
@@ -18,10 +18,10 @@ final class RoutineVerification {
         var snapshot=TiberoRoutineCatalog.snapshot("DEMO",fixture.objects(),fixture.members(),fixture.arguments());
         check(snapshot.size()==6,"Standalone function, overloaded functions and zero-argument procedure");
         var model=ModelFactory.BLACK_HOLE.createModel(GenericDbms.TIBERO);
-        var target=new AtomicReference<GenericSchema>();
-        model.modify(GenericRoot.class,root->target.set(root.getDatabases().createOrGet("TEST").getSchemas().createOrGet("DEMO")));
+        var target=new AtomicReference<OraSchema>();
+        model.modify(OraRoot.class,root->target.set(root.getSchemas().createOrGet("DEMO")));
         var schema=target.get();
-        model.modify(schema,GenericSchema.class,s->{TiberoStoredObjects.apply(s,fixture.objects()); TiberoRoutineCatalog.apply(s,snapshot);});
+        model.modify(schema,OraSchema.class,s->{TiberoStoredObjects.apply(s,fixture.objects()); TiberoRoutineCatalog.apply(s,snapshot);});
         var pkg=schema.getPackages().first();
         check(pkg.getRoutines().size()==5,"Native package family contains all overloads");
         var context=TiberoRoutineCompletion.context("SELECT DEMO.PKG.CA");
@@ -43,7 +43,7 @@ final class RoutineVerification {
         check(read.getArguments().iterator().next().getDasType().getSpecification().contains("ITEM_T"),"Package-local named type retained");
         checkCompletionPipeline(project,model);
         var before=List.copyOf(candidates);
-        model.modify(schema,GenericSchema.class,s->TiberoRoutineCatalog.apply(s,snapshot));
+        model.modify(schema,OraSchema.class,s->TiberoRoutineCatalog.apply(s,snapshot));
         check(TiberoRoutineCompletion.candidates(pkg,new TiberoRoutineCompletion.Context("DEMO","PKG","")).equals(before),"Repeated refresh preserves overload identity");
         var wrong=new ArrayList<>(fixture.arguments()); wrong.add(wrong.get(0));
         reject(()->TiberoRoutineCatalog.snapshot("DEMO",fixture.objects(),fixture.members(),wrong));
@@ -51,7 +51,7 @@ final class RoutineVerification {
         var missing=new ArrayList<>(fixture.arguments()); missing.remove(0);
         reject(()->TiberoRoutineCatalog.snapshot("DEMO",fixture.objects(),fixture.members(),missing));
         var changed=snapshot.stream().filter(s->!s.key().name().equals("CALC") || s.overload().equals("8")).toList();
-        model.modify(schema,GenericSchema.class,s->TiberoRoutineCatalog.apply(s,changed));
+        model.modify(schema,OraSchema.class,s->TiberoRoutineCatalog.apply(s,changed));
         check(pkg.getRoutines().size()==4,"Dropped overload removed");
         check(TiberoRoutineCatalog.argumentsSql("O'WNER").contains("'O''WNER'") && TiberoRoutineCatalog.argumentsSql("S").contains("DATA_LEVEL = 0"),"Bounded schema and top-level argument SQL");
         checkTransport(fixture,false); checkTransport(fixture,true);
@@ -62,7 +62,7 @@ final class RoutineVerification {
         for(int i=0;i<5000;i++) largeMembers.add(new TiberoRoutineCatalog.Member("DEMO","PKG","PROC_"+i,""+i,"NO"));
         long start=System.nanoTime();
         var large=TiberoRoutineCatalog.snapshot("DEMO",List.of(fixture.objects().get(1)),largeMembers,List.of());
-        model.modify(schema,GenericSchema.class,s->TiberoRoutineCatalog.apply(s,large));
+        model.modify(schema,OraSchema.class,s->TiberoRoutineCatalog.apply(s,large));
         check(pkg.getRoutines().size()==5000,"5000-member snapshot applied");
         check(TiberoRoutineCompletion.candidates(pkg,new TiberoRoutineCompletion.Context("DEMO","PKG","PROC_4999")).size()==1,"Prefix filtering happens before completion cap");
         var quoted=TiberoRoutineCompletion.context("SELECT \"Demo\".\"Pkg\".C");
@@ -153,16 +153,16 @@ final class RoutineVerification {
     }
     private static void checkCurrentSchema() throws Exception {
         var model=ModelFactory.BLACK_HOLE.createModel(GenericDbms.TIBERO);
-        var schemas=new HashMap<String,GenericSchema>();
-        model.modify(GenericRoot.class,root->{
-            var family=root.getDatabases().createOrGet("TEST").getSchemas();
+        var schemas=new HashMap<String,OraSchema>();
+        model.modify(OraRoot.class,root->{
+            var family=root.getSchemas();
             for(var name:List.of("APP_USER","ABC","HR")) schemas.put(name,family.createOrGet(name));
             schemas.get("APP_USER").setCurrent(true);
         });
         boolean[] applied={false};
-        model.modify(GenericRoot.class,root->applied[0]=TiberoCurrentSchema.apply(root,"ABC"));
+        model.modify(OraRoot.class,root->applied[0]=TiberoCurrentSchema.apply(root,"ABC"));
         check(applied[0] && schemas.get("ABC").isCurrent() && !schemas.get("APP_USER").isCurrent() && !schemas.get("HR").isCurrent(),"Session CURRENT_SCHEMA becomes the only current schema");
-        model.modify(GenericRoot.class,root->applied[0]=TiberoCurrentSchema.apply(root,"MISSING"));
+        model.modify(OraRoot.class,root->applied[0]=TiberoCurrentSchema.apply(root,"MISSING"));
         check(!applied[0] && schemas.get("ABC").isCurrent(),"Unknown CURRENT_SCHEMA leaves the model unchanged");
         var connection=proxy(com.intellij.database.dataSource.DatabaseConnectionCore.class,(o,m,a)-> {
             if(!m.getName().equals("getRemoteConnection")) throw new AssertionError(m.getName());
@@ -189,8 +189,8 @@ final class RoutineVerification {
     /** Oracle-dialect consoles resolve unqualified names in the model's current schema when the session reports none. */
     private static void checkUnqualifiedResolve(Project project) throws Exception {
         var model=ModelFactory.BLACK_HOLE.createModel(GenericDbms.TIBERO);
-        model.modify(GenericRoot.class,root->{
-            var database=root.getDatabases().createOrGet("TEST"); database.setCurrent(true);
+        model.modify(OraRoot.class,root->{
+            var database=root; database.setCurrent(true);
             var login=database.getSchemas().createOrGet("APP_USER"); login.setCurrent(true);
             var abc=database.getSchemas().createOrGet("ABC"); abc.getTables().createOrGet("ORDERS"); abc.getTables().createOrGet("ITEMS");
             login.getTables().createOrGet("ITEMS");
@@ -219,7 +219,7 @@ final class RoutineVerification {
                 check(in(resolve(project,files,"SELECT * FROM ITEMS","ITEMS"),"APP_USER","ITEMS"),"An object in the current schema hides the PUBLIC synonym");
                 check(resolve(project,files,"SELECT * FROM \"orders\"","orders")==null,"Quoted lower-case name does not match the synonym");
             } finally { synonyms.update(source.getUniqueId(),Map.of()); }
-            model.modify(GenericRoot.class,root->TiberoCurrentSchema.apply(root,"ABC"));
+            model.modify(OraRoot.class,root->TiberoCurrentSchema.apply(root,"ABC"));
             var target=resolve(project,files,"SELECT * FROM ORDERS");
             check(in(target,"ABC","ORDERS"),"Unqualified name resolves in the session CURRENT_SCHEMA: " + target);
             System.out.println("PASS: Oracle-dialect console resolves unqualified names through PUBLIC synonyms and in CURRENT_SCHEMA (ABC); local objects win; DATA_LEVEL-less ALL_ARGUMENTS retried");

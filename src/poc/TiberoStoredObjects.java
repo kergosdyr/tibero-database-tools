@@ -5,6 +5,8 @@ import com.intellij.database.model.ObjectKind;
 import com.intellij.database.model.basic.*;
 import com.intellij.database.model.families.ModFamily;
 import java.util.*;
+import com.intellij.database.dataSource.DatabaseConnectionCore;
+import com.intellij.openapi.progress.ProgressManager;
 
 /** Complete per-schema catalogue snapshot; validation precedes all model mutation. */
 public final class TiberoStoredObjects {
@@ -58,10 +60,39 @@ public final class TiberoStoredObjects {
             object.setSyncPending(false);
             if(routine) ((BasicModRoutine)object).setRoutineKind(DasRoutine.Kind.valueOf(item.type()));
             if(object instanceof BasicModSourceAware source) source.setInvalid(item.invalid());
-            // Generic metadata currently ignores INVALID; keep the status visible in its comment field.
-            if(item.invalid() && (object.getComment()==null || object.getComment().startsWith("Tibero status:")))
-                object.setComment("Tibero status: INVALID");
-            else if(!item.invalid() && "Tibero status: INVALID".equals(object.getComment())) object.setComment(null);
+
+        }
+    }
+    @FunctionalInterface interface SnapshotReader {
+        List<TiberoStoredObjects.Entry> read() throws java.sql.SQLException,java.rmi.RemoteException;
+    }
+    static void refresh(BasicModSchema schema,SnapshotReader reader) throws java.sql.SQLException,java.rmi.RemoteException {
+        var snapshot=TiberoStoredObjects.snapshot(schema.getName(),reader.read());
+        ProgressManager.checkCanceled();
+        schema.getModel().modify(schema,BasicModSchema.class,mod -> TiberoStoredObjects.apply(mod,snapshot));
+    }
+    static List<TiberoStoredObjects.Entry> readCatalog(DatabaseConnectionCore connection,String schema) throws java.sql.SQLException,java.rmi.RemoteException {
+        var statement=connection.getRemoteConnection().createStatement();
+        Throwable failure=null;
+        try {
+            statement.setQueryTimeout(60);
+            var rs=statement.executeQuery(TiberoStoredObjects.sql(schema));
+            Throwable rowFailure=null;
+            try {
+                var rows=new ArrayList<TiberoStoredObjects.Entry>();
+                while(rs.next()) {
+                    ProgressManager.checkCanceled();
+                    if(rows.size()>=100000) throw new java.sql.SQLException("Stored object snapshot exceeds 100000 rows; refusing partial refresh");
+                    rows.add(new TiberoStoredObjects.Entry(rs.getString(1),rs.getString(2),rs.getString(3),rs.getString(4)));
+                }
+                return rows;
+            } catch(java.sql.SQLException | java.rmi.RemoteException | RuntimeException | Error e) { rowFailure=e; throw e; }
+            finally {
+                try { rs.close(); } catch(java.sql.SQLException | java.rmi.RemoteException close) { if(rowFailure!=null) rowFailure.addSuppressed(close); else throw close; }
+            }
+        } catch(java.sql.SQLException | java.rmi.RemoteException | RuntimeException | Error e) { failure=e; throw e; }
+        finally {
+            try { statement.close(); } catch(java.sql.SQLException | java.rmi.RemoteException close) { if(failure!=null) failure.addSuppressed(close); else throw close; }
         }
     }
 }

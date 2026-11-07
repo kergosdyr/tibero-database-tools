@@ -30,7 +30,7 @@ Tibero 6 함수 인자 조회와 TIMESTAMP 등 일부 JDBC 타입 표시에도 �
 
 ## 3. DB 링크와 생성 DDL 확인하기
 
-로컬 Tibero 스키마를 **Refresh**하면 스키마 아래 `dblinks` 그룹에서 private 및 PUBLIC DB 링크를 볼 수 있습니다. 같은 이름의 링크가 있으면 현재 스키마의 private 링크가 우선합니다.
+로컬 Tibero 스키마를 **Refresh**하면 private DB 링크는 각 스키마 아래에, PUBLIC DB 링크는 PUBLIC 스키마 아래에 표시됩니다. PUBLIC 링크를 확인하려면 데이터 소스의 스키마 선택 범위에 `PUBLIC`을 포함하고 Refresh해야 합니다. DB 링크 매핑과 SQL 자동완성에서는 같은 이름의 링크가 있을 경우 현재 스키마의 private 링크가 PUBLIC 링크보다 우선합니다.
 
 링크 생성 DDL을 여는 방법은 다음과 같습니다.
 
@@ -141,8 +141,7 @@ DB 링크의 HOST 또는 USERNAME이 변경되면 대상 데이터 소스와 스
 
 | IDE 버전 | 소스 편집 동작 |
 |---|---|
-| 2026.1.5 | IDE 기본 Generic scripting 동작 |
-| 2026.2.x | 소스 편집 및 **Submit** 연동 |
+| IntelliJ IDEA 2026.1.5–2026.2.x | 저장 객체 소스 편집 및 **Submit** 연동 지원 (선택한 데이터 소스에 DDL 실행) |
 
 **Submit은 데이터베이스에 DDL을 실제 실행**합니다. 수정할 객체와 연결된 데이터 소스를 확인하고 실행하세요.
 

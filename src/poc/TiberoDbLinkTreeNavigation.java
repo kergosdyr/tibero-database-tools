@@ -14,7 +14,7 @@ import com.intellij.util.ui.tree.ExpandOnDoubleClick;
 import javax.swing.JTree;
 import java.util.function.Supplier;
 
-/** Database Tools classifies every extra hierarchy node as expandable, including our link leaves. */
+/** Opens Tibero DB-link DDL through public mouse/keyboard shortcuts on the native Database tree. */
 public final class TiberoDbLinkTreeNavigation implements StartupActivity.DumbAware {
     private static final String INSTALLED="tibero.db.link.navigation";
     @Override public void runActivity(Project project) {
@@ -48,18 +48,27 @@ public final class TiberoDbLinkTreeNavigation implements StartupActivity.DumbAwa
         };
         javax.swing.event.TreeSelectionListener listener=e->update.run();
         tree.addTreeSelectionListener(listener); update.run();
-        var open=new AnAction() {
+        var open=openAction(selected);
+        var shortcuts=new java.util.ArrayList<Shortcut>(java.util.List.of(CommonShortcuts.ENTER.getShortcuts()));
+        shortcuts.add(new MouseShortcut(java.awt.event.MouseEvent.BUTTON1,0,2));
+        open.registerCustomShortcutSet(new CustomShortcutSet(shortcuts.toArray(Shortcut[]::new)),tree,parent);
+        Disposer.register(parent,()-> {
+            tree.removeTreeSelectionListener(listener); original.installOn(tree); tree.putClientProperty(INSTALLED,null);
+        });
+    }
+    static AnAction openAction(Supplier<TiberoDatabaseTree.Link> selected) {
+        return new AnAction() {
             @Override public ActionUpdateThread getActionUpdateThread() { return ActionUpdateThread.EDT; }
             @Override public void update(AnActionEvent event) {
                 var link=selected.get(); event.getPresentation().setEnabled(link!=null && link.entry()!=null);
             }
             @Override public void actionPerformed(AnActionEvent event) {
-                var link=selected.get(); if(link!=null && link.entry()!=null) TiberoDbLinkActions.open(link);
+                var link=selected.get();
+                if(link!=null && link.entry()!=null) {
+                    if(event.getProject()!=null) TiberoDbLinkActions.open(event.getProject(),link.entry());
+                    else TiberoDbLinkActions.open(link);
+                }
             }
         };
-        open.registerCustomShortcutSet(CommonShortcuts.ENTER,tree,parent);
-        Disposer.register(parent,()-> {
-            tree.removeTreeSelectionListener(listener); original.installOn(tree); tree.putClientProperty(INSTALLED,null);
-        });
     }
 }

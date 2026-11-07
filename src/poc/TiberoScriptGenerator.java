@@ -5,9 +5,9 @@ import com.intellij.database.dialects.base.generator.ScriptGeneratorHelper;
 import com.intellij.database.dialects.base.generator.ScriptingContext;
 import com.intellij.database.dialects.base.generator.producers.*;
 import com.intellij.database.dialects.generic.GenericDbms;
-import com.intellij.database.dialects.generic.generator.GenericScriptGeneratorHelper;
-import com.intellij.database.dialects.generic.model.GenericPackage;
-import com.intellij.database.dialects.generic.model.GenericRoutine;
+import com.intellij.database.dialects.oracle.generator.OraScriptGeneratorHelper;
+
+import com.intellij.database.model.basic.BasicRoutine;
 import com.intellij.database.model.ElementAlteration;
 import com.intellij.database.model.ObjectKind;
 import com.intellij.database.model.basic.BasicElement;
@@ -18,8 +18,7 @@ import java.util.Set;
 import kotlin.Unit;
 
 /**
- * Generic scripting with Oracle-style source submission: an edited routine or package is replaced
- * by its new CREATE OR REPLACE text. Generic only emits "alter routine definition is not implemented".
+ * Source submission keeps the complete CREATE OR REPLACE text for Tibero routines, packages and views.
  */
 public final class TiberoScriptGenerator extends AbstractScriptGenerator {
     private final ScriptGeneratorHelper helper=new Helper();
@@ -27,7 +26,7 @@ public final class TiberoScriptGenerator extends AbstractScriptGenerator {
     @Override public ScriptGeneratorHelper getGeneratorHelper() { return helper; }
 
     static final class Helper extends ScriptGeneratorHelper {
-        private final GenericScriptGeneratorHelper generic=new GenericScriptGeneratorHelper(GenericDbms.TIBERO);
+        private final OraScriptGeneratorHelper nativeHelper=OraScriptGeneratorHelper.INSTANCE;
         Helper() { super(GenericDbms.TIBERO); }
         @Override protected Set<ObjectKind> getSupportsCreateOrReplace() {
             return Set.of(ObjectKind.ROUTINE,ObjectKind.PACKAGE,ObjectKind.BODY,ObjectKind.VIEW,ObjectKind.TRIGGER);
@@ -36,24 +35,31 @@ public final class TiberoScriptGenerator extends AbstractScriptGenerator {
         @Override public String getStatementDelimiterStr() { return "/"; }
         @Override public boolean getStatementDelimiterOwnsLine() { return true; }
         @Override public CreateProducer<?> createProducerImpl(ScriptingContext context,BasicElement element) {
-            return inPackage(element) ? new Skip.Create(context,element) : generic.createProducerImpl(context,element);
+            var link=TiberoDatabaseTree.link(element);
+            if(link!=null) return new CreateProducerBase<BasicElement>(context,element) {
+                @Override public void produceCreate() {
+                    newCoding(coding -> { coding.appendSimple(TiberoDbLinkActions.ddl(link.entry()),CompositeText.Kind.ORIGINAL_TEXT,null); return Unit.INSTANCE; });
+                }
+            };
+            return isSourceMember(element) ? new Skip.Create(context,element) : nativeHelper.createProducerImpl(context,element);
         }
         @Override public DropProducer<?> createDropProducerImpl(ScriptingContext context,BasicElement element) {
-            return inPackage(element) ? new Skip.Drop(context,element) : generic.createDropProducerImpl(context,element);
+            return isSourceMember(element) ? new Skip.Drop(context,element) : nativeHelper.createDropProducerImpl(context,element);
         }
         @SuppressWarnings({"unchecked","rawtypes"})
         @Override public AlterProducerBase<?> createAlterProducerImpl(ScriptingContext context,ElementAlteration<?> elements) {
             var source=elements.getSourceElement();
-            if(inPackage(source)) return new Skip.Alter(context,elements);
-            if(source instanceof GenericRoutine) return new ReplaceRoutine(context,(ElementAlteration)elements);
-            if(source instanceof GenericPackage) return new ReplacePackage(context,(ElementAlteration)elements);
-            return generic.createAlterProducerImpl(context,elements);
+            if(isSourceMember(source)) return new Skip.Alter(context,elements);
+            if(source instanceof BasicRoutine || source.getKind()==ObjectKind.VIEW) return new ReplaceSource(context,(ElementAlteration)elements);
+            if(source.getKind()==ObjectKind.PACKAGE) return new ReplaceSource(context,(ElementAlteration)elements);
+            return nativeHelper.createAlterProducerImpl(context,elements);
         }
     }
 
-    /** Package members and their arguments only exist inside the package source; never script them alone. */
-    static boolean inPackage(BasicElement element) {
-        for(var e=element; e!=null; e=e.getParent()) if(e instanceof GenericPackage) return e!=element;
+    /** Routine arguments, package members and view columns belong to their containing source statement. */
+    static boolean isSourceMember(BasicElement element) {
+        for(var e=element.getParent(); e!=null; e=e.getParent())
+            if(e.getKind()==ObjectKind.PACKAGE || e.getKind()==ObjectKind.ROUTINE || e.getKind()==ObjectKind.VIEW) return true;
         return false;
     }
     static final class Skip {
@@ -76,20 +82,15 @@ public final class TiberoScriptGenerator extends AbstractScriptGenerator {
         return y==null || x!=null && TiberoSourceText.statements(x.getText()).equals(TiberoSourceText.statements(y.getText()));
     }
 
-    static final class ReplaceRoutine extends AlterRoutine<GenericRoutine> {
-        ReplaceRoutine(ScriptingContext context,ElementAlteration<? extends GenericRoutine> elements) { super(context,elements); }
-        @Override protected void produceAlterDefinition() { produceCreateOrReplace(true); }
-    }
-
-    static final class ReplacePackage extends AlterProducerBase<GenericPackage> {
-        ReplacePackage(ScriptingContext context,ElementAlteration<? extends GenericPackage> elements) {
+    static final class ReplaceSource extends AlterProducerBase<BasicElement> {
+        ReplaceSource(ScriptingContext context,ElementAlteration<? extends BasicElement> elements) {
             super(context,elements);
             getFlags().add(SourceAwareProducersKt.getDEFINITION_FLAG_ID(),
                     !isAnyRename() && !sameSource((BasicSourceAware)getElement(),(BasicSourceAware)getTo()));
         }
         @Override public void produceFlag(BasicMetaId id,Set<BasicMetaId> produced) {
             if(!id.equals(SourceAwareProducersKt.getDEFINITION_FLAG_ID())) { super.produceFlag(id,produced); return; }
-            // Specification and body are separate statements; the generic producer would send them as one.
+            // Specification and body are submitted as separate statements.
             for(String statement:TiberoSourceText.statements(((BasicSourceAware)getTo()).getSourceText().getText()))
                 newCoding(coding -> { coding.appendSimple(statement,CompositeText.Kind.ORIGINAL_TEXT,null); return Unit.INSTANCE; });
         }

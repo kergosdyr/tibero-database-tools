@@ -1,64 +1,63 @@
-# Marketplace Technical Review — Tibero Database Tools
+# Marketplace Technical Review — Public API Integration
 
-## Plugin Information
+## Overview
 
-- **Plugin:** Tibero Database Tools
-- **Plugin ID:** `io.github.kergosdyr.tibero.database.tools`
-- **Marketplace ID:** `35762`
-- **Source:** https://github.com/kergosdyr/tibero-database-tools
-- **Source commit:** `5543919`
-- **Implementation:** [TiberoIntrospector.java](https://github.com/kergosdyr/tibero-database-tools/blob/5543919/src/poc/TiberoIntrospector.java)
+Tibero Database Tools has migrated its database introspection and model integration to public IntelliJ Platform APIs.
 
-| Version | Marketplace Update | Supported IDE Builds |
-|---|---|---|
-| 0.7.8 | 1211217 | 261.27258.48–262.10968.63 |
-| 0.7.9 | 1211218 | 262.11879.100–262.* |
+The migration addresses both the previously reported Internal introspector dependencies and an additional Internal hierarchy descriptor dependency.
 
-## Purpose of the Introspection Extension
+## Technical Changes
 
-Tibero Database Tools extends standard JDBC introspection to enrich the IDE's database model with Tibero-specific packages, routines, overloaded signatures, sequences, object sources, and database links.
+### Metadata Introspection
 
-The extension participates in schema refresh, preserves existing objects when catalogue retrieval fails, reconciles successful snapshots, and maintains package and routine object identities. Database link catalogues and mappings are persisted separately.
+The previous `DBIntrospector.Factory` implementation, its eight overridden methods, and the `com.intellij.database.introspector` extension registration have been removed.
 
-## Remaining Internal API Dependencies
+The new `TiberoMetadataRefresh` implementation combines:
 
-Six of the original 15 Internal API usages have been replaced with public APIs.
+- `jdbcMetadataWrapper` for JDBC metadata processing.
+- `DatabaseModelLoader.Listener` for refresh completion and catalogue reconciliation.
 
-Nine Plugin Verifier warnings remain, associated with the Internal `com.intellij.database.introspector` extension point:
+Complete catalogue snapshots are collected while JDBC connections are active. Successful refreshes, including those completed with warnings, apply the collected results.
 
-- `DBIntrospector.Factory`
-- `createIntrospector`
-- `isSupported`
-- `getVersion`
-- `isOutdatedCheckSupported`
-- `isNative`
-- `isIncremental`
-- `supportsMultilevelIntrospection`
-- `supportsFragmentIntrospection`
+Failed or cancelled collection preserves existing catalogue data. A successful empty snapshot removes obsolete entries.
 
-The Marketplace review is awaiting a resolution of these Internal API dependencies.
+### Dedicated Tibero Model
 
-## Public API Alternatives Investigated
+The Internal `DvFamilyHierarchyDescriptor` dependency has been removed.
 
-- **`jdbcMetadataWrapper`:** Supports JDBC metadata row adjustments but does not replace the complete introspection lifecycle.
-- **`jdbcSourceLoader`:** Supports object source loading but does not provide equivalent schema model reconciliation.
-- **`DatabaseModelLoader.Listener.finished`:** Provides a public lifecycle notification. In the current SDK, it runs after database connection detachment and source-session release, making it unsuitable as a direct in-place replacement.
+A dedicated Tibero model instance is created using public `ModelFacade` APIs and the schema and `DB_LINK` model contracts of `OraMetaModel`.
 
-A functionally equivalent public API approach has not yet been established.
+The integration does not modify global Generic or Oracle models.
 
-Plugin Verifier reports binary compatibility across three tested IDE builds, and runtime checks pass. These results are separate from Internal API policy compliance and Marketplace approval.
+Database links are native Database tree objects, including PUBLIC links under the PUBLIC schema.
 
-## Request for JetBrains Guidance
+### Cache Migration
 
-We would appreciate guidance on:
+The public `DataSourceModelStorage.Listener` is used to migrate existing Generic caches.
 
-1. A supported public extension point or API combination for Tibero-specific schema introspection and model reconciliation.
-2. Whether public API support for this use case is planned.
-3. The official process for requesting API exposure or an exception, if applicable.
+Migration preserves tables, columns, packages, routines, and selected schemas. Original caches are retained as `.tibero-generic-backup`.
 
-We intend to preserve the current functionality while moving to supported APIs.
+Existing persistent database link catalogues and remote mappings are reused.
 
-## References
+Package and routine identities, signatures, sources, DDL, sequences, and remote completion behavior are maintained.
 
-- [DataGrip Extension Point List](https://plugins.jetbrains.com/docs/intellij/data-grip-extension-point-list.html)
-- [Internal API Migration](https://plugins.jetbrains.com/docs/intellij/api-internal.html)
+## Verification
+
+The implementation is evaluated through three complementary checks:
+
+1. **Official Plugin Verifier:** Binary compatibility and Internal API usage across the supported IDE builds. The previously reported nine introspector warnings have been eliminated.
+2. **IDE runtime and SDK/JDBC regression tests:** Metadata collection, model reconciliation, cache conversion, object pruning, and source Submit behavior. Runtime and cache conversion tests passed on IntelliJ IDEA 2026.1.5, 2026.2.3, and 2026.2.4.
+3. **Separate IDE process persistence tests:** Catalogue and mapping restoration across IDE restarts.
+
+## Compatibility
+
+| Plugin Version | Supported IDE Builds |
+|---|---|
+| 0.7.10 | 261.27258.48–262.10968.63 |
+| 0.7.11 | 262.11879.100–262.* |
+
+Both versions share the plugin ID `io.github.kergosdyr.tibero.database.tools`.
+
+Repository: https://github.com/kergosdyr/tibero-database-tools
+
+Submitted updates require JetBrains review.

@@ -1,11 +1,11 @@
 {
   "legacy": {
-    "version": "0.7.8",
+    "version": "0.7.10",
     "since-build": "261.27258.48",
     "until-build": "262.10968.63"
   },
   "current": {
-    "version": "0.7.9",
+    "version": "0.7.11",
     "since-build": "262.11879.100",
     "until-build": "262.*"
   }

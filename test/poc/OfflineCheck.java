@@ -15,7 +15,6 @@ public final class OfflineCheck {
             require(provider.isRawSupported(version, false), "Tibero " + major + " raw explain enabled");
             require(provider.isSupported(version, false), "Tibero " + major + " native tree enabled");
             require(!provider.isRawSupported(version, true) && provider.isSupported(version, true), "Actual tree supported; raw remains estimated for " + major);
-            require(new TiberoIntrospector.Factory().isSupported(version), "Introspector accepts Tibero " + major);
         }
         require(loader.supportsViewDefinition(), "View source support");
         String view = TiberoViewLoader.viewSql("O'WNER", "Mixed'View");
@@ -126,7 +125,7 @@ public final class OfflineCheck {
             try { TiberoExplainProvider.planSql(sql); } catch (IllegalArgumentException expected) { continue; }
             throw new AssertionError("Unsafe or malformed script accepted: " + sql);
         }
-        System.out.println("PASS: Tibero 6/7 provider/introspector eligibility and shared sample plan contract; single-statement explain guard");
+        System.out.println("PASS: Tibero 6/7 provider eligibility and shared sample plan contract; single-statement explain guard");
     }
     /** The supplied Tibero 6 JAR still builds the malformed function-column SQL that the metadata wrapper avoids. */
     private static void checkDriverMetadataQueries() throws Exception {

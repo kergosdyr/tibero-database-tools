@@ -19,8 +19,40 @@ public final class TiberoMetadataWrapper extends GenericMetadataWrapper {
             return new TiberoMetadataWrapper(connection,metadata);
         }
     }
-    public TiberoMetadataWrapper(DatabaseConnectionCore connection,RemoteDatabaseMetaData metadata) { super(connection,metadata); }
+    public TiberoMetadataWrapper(DatabaseConnectionCore connection,RemoteDatabaseMetaData metadata) {
+        super(connection,metadata);
+        TiberoMetadataRefresh.connection(connection);
+    }
+    @Override public ClosableIt<Schema> schemas(com.intellij.util.containers.JBIterable<String> databases) throws SQLException {
+        return withPublicSchema(super.schemas(databases));
+    }
+    static ClosableIt<Schema> withPublicSchema(ClosableIt<Schema> source) {
+        // PUBLIC owns shared links but is absent from JDBC's ALL_USERS-based schema list.
+        return new ClosableIt<>() {
+            boolean publicSeen;
+            @Override protected Schema nextImpl() {
+                if(source.hasNext()) {
+                    var schema=source.next();
+                    if("PUBLIC".equals(schema.schema)) publicSeen=true;
+                    return schema;
+                }
+                if(publicSeen) return stop();
+                publicSeen=true;
+                return new Schema("PUBLIC",null);
+            }
+            @Override public void close() { source.close(); }
+        };
+    }
+    @Override public ClosableIt<? extends Table> tables(Schema schema,String name,String[] types) throws SQLException {
+        TiberoMetadataRefresh.structure(getConnection(),schema);
+        return super.tables(schema,name,types);
+    }
+    @Override public ClosableIt<Routine> routines(Schema schema,String pkg,String name) throws SQLException {
+        TiberoMetadataRefresh.routines(getConnection(),schema,false);
+        return super.routines(schema,pkg,name);
+    }
     @Override public ClosableIt<RoutineArgument> routineArgumentsInner(Schema schema,String name,Function<Routine,DasRoutine.Kind> kinds) throws SQLException {
+        TiberoMetadataRefresh.routines(getConnection(),schema,true);
         // The base appends getFunctionColumns(), whose Tibero 6 SQL contains "'DATE', )93" (JDBC-8012 Missing comma).
         // getProcedureColumns() reads the same ALL_ARGUMENTS rows for functions too (return value as COLUMN_TYPE 5),
         // so only the broken half is dropped and routine signatures keep their arguments.
@@ -37,6 +69,7 @@ public final class TiberoMetadataWrapper extends GenericMetadataWrapper {
         }
     }
     @Override protected ClosableIt<TableColumn> getTableColumnsInner2(Schema schema,String table) throws SQLException {
+        TiberoMetadataRefresh.structure(getConnection(),schema);
         return normalizeColumns(super.getTableColumnsInner2(schema,table));
     }
     static ClosableIt<TableColumn> normalizeColumns(ClosableIt<TableColumn> source) {

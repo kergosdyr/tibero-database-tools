@@ -18,8 +18,8 @@ io.github.kergosdyr.tibero.database.tools
 
 | API 프로필 | 버전 | 최소 빌드 | 최대 빌드 |
 |---|---|---|---|
-| `legacy` | 0.7.8 | `261.27258.48` | `262.10968.63` |
-| `current` | 0.7.9 | `262.11879.100` | `262.*` |
+| `legacy` | 0.7.10 | `261.27258.48` | `262.10968.63` |
+| `current` | 0.7.11 | `262.11879.100` | `262.*` |
 
 IDE 2026.2.4에서 JDBC API 패키지 경로가 변경되었습니다. 두 배포본은 같은 구현과 플러그인 ID를 사용하며 호환 범위가 겹치지 않습니다. Marketplace에는 두 버전을 모두 업로드합니다.
 
@@ -130,7 +130,7 @@ python3 check-compatibility.py \
 
 바이너리 호환성 오류와 내부·실험·폐기 예정 API 경고를 구분하여 확인합니다. 내부 API는 [공식 교체 및 예외 목록](https://plugins.jetbrains.com/docs/intellij/api-internal.html)을 참고합니다.
 
-0.7.8은 2026.1.5와 2026.2.3에서, 0.7.9는 2026.2.4에서 검사합니다. 각 서명 ZIP을 Verifier의 `check-plugin`에 전달하여 실제 배포 파일을 확인합니다. IDE 2026.2에서 분리된 Grid Core 의존성도 검사 대상에 포함합니다.
+0.7.10은 2026.1.5와 2026.2.3에서, 0.7.11는 2026.2.4에서 검사합니다. 각 서명 ZIP을 Verifier의 `check-plugin`에 전달하여 실제 배포 파일을 확인합니다. IDE 2026.2에서 분리된 Grid Core 의존성도 검사 대상에 포함합니다.
 
 지원 IDE의 빌드 범위는 [JetBrains Build Number Ranges](https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html)를 참고합니다.
 
@@ -195,10 +195,10 @@ sha256sum build/tibero-intellij-poc.jar
 6. ZIP, JAR 및 체크섬 파일을 첨부합니다.
 7. `RELEASE-NOTES.md`의 내용을 릴리스 본문에 반영합니다.
 
-버전 `0.7.8`의 Git 태그 형식은 다음과 같습니다.
+버전 `0.7.10`의 Git 태그 형식은 다음과 같습니다.
 
 ```text
-v0.7.8
+v0.7.10
 ```
 
 릴리스 본문에는 사용자가 필요한 정보를 바로 찾을 수 있도록 주요 변경 사항, 설치 방법, 지원 IDE 범위 및 사용 가이드 링크를 배치합니다.

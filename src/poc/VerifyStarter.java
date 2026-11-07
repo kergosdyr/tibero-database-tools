@@ -116,8 +116,15 @@ public final class VerifyStarter implements ApplicationStarter {
                 }
             });
             if(failure.get()!=null) throw new AssertionError("IDE UI-model verification failed",failure.get());
+            var metadataProject=new AtomicReference<com.intellij.openapi.project.Project>();
+            var metadataDirectory=Files.createTempDirectory("tibero-metadata-verification-");
+            ApplicationManager.getApplication().invokeAndWait(() -> metadataProject.set(
+                    com.intellij.openapi.project.ex.ProjectManagerEx.getInstanceEx().newProject("Tibero metadata verification",metadataDirectory.toString(),false,false)));
+            try { MetadataRefreshVerification.run(metadataProject.get()); }
+            finally { ApplicationManager.getApplication().invokeAndWait(() ->
+                    ApplicationManager.getApplication().runWriteAction(() -> Disposer.dispose(metadataProject.get()))); }
             Files.writeString(Path.of(System.getProperty("tibero.poc.result")),
-                    "PASS: real IDE extensions, two-statement SQL, actual plan builder/metrics/view/diagram, native tree view, native diagram (5 nodes/4 edges), menu actions, no standalone Tibero windows/menus, stored-object introspector/model/refresh/source/remote-read contracts; source editor Submit (procedure, package spec/body, view); sequences, db link tree and schema scope, JDBC routine arguments without getFunctionColumns, Tibero getColumns() type shapes to DDL and cached type repair; package overloads/arguments/returns, completion lookup and bounded bulk-query contracts\n"
+                    "PASS: real IDE extensions, two-statement SQL, actual plan builder/metrics/view/diagram, native tree view, native diagram (5 nodes/4 edges), menu actions, no standalone Tibero windows/menus, public JDBC metadata/lifecycle refresh, failure/cancellation preservation and stored-object model/source contracts; source editor Submit (procedure, package spec/body, view); sequences, db link tree and schema scope, JDBC routine arguments without getFunctionColumns, Tibero getColumns() type shapes to DDL and cached type repair; package overloads/arguments/returns, completion lookup and bounded bulk-query contracts\n"
                     + "NOT TESTED: database execution, displayed-window interaction and remote JDBC\n");
             status = 0;
         } catch (Throwable e) { e.printStackTrace(); }

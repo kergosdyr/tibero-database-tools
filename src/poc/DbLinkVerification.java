@@ -1,7 +1,7 @@
 package poc;
 
 import com.intellij.database.dialects.generic.GenericDbms;
-import com.intellij.database.dialects.generic.model.GenericRoot;
+import com.intellij.database.dialects.oracle.model.OraRoot;
 import com.intellij.database.dataSource.*;
 import com.intellij.database.psi.*;
 import com.intellij.database.model.*;
@@ -123,7 +123,7 @@ final class DbLinkVerification {
     }
     private static LocalDataSource fixture(String name,String schema,String table,String... columns) {
         var model=com.intellij.database.model.ModelFactory.BLACK_HOLE.createModel(GenericDbms.TIBERO);
-        model.modify(GenericRoot.class,r->{var database=r.getDatabases().createOrGet("DB"); database.setCurrent(true); var s=database.getSchemas().createOrGet(schema); s.setCurrent(true); var t=s.getTables().createOrGet(table); for(String c:columns) t.getColumns().createOrGet(c);});
+        model.modify(OraRoot.class,r->{var database=r; database.setCurrent(true); var s=database.getSchemas().createOrGet(schema); s.setCurrent(true); var t=s.getTables().createOrGet(table); for(String c:columns) t.getColumns().createOrGet(c);});
         var source=LocalDataSource.temporary(); source.setName(name); source.setAutoSynchronize(false);
         source.setDatabaseDriver(DatabaseDriverManager.getInstance().getDriver("tibero")); source.setModel(model);
         source.setIntrospectionScope(com.intellij.database.util.TreePatternUtils.parse(GenericDbms.TIBERO,"*:*")); return source;

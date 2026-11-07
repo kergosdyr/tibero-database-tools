@@ -45,7 +45,7 @@ export TIBERO_POC_DRIVER='/path/to/licensed/tibero6-jdbc.jar'
 python3 build.py
 ```
 
-`build.py`는 SDK 빌드 번호에 따라 `release-profiles.json`의 `legacy`(0.7.8) 또는 `current`(0.7.9) 프로필을 선택합니다. IDE 2026.2.4부터 `com.intellij.database.jdbc`로 이동한 API를 원본 소스에서 사용하고, 이전 SDK로 빌드할 때는 `build/legacy-sources`에 이전 패키지 경로를 적용한 소스를 생성합니다. 두 배포본의 기능 구현은 동일합니다.
+`build.py`는 SDK 빌드 번호에 따라 `release-profiles.json`의 `legacy`(0.7.10) 또는 `current`(0.7.11) 프로필을 선택합니다. IDE 2026.2.4부터 `com.intellij.database.jdbc`로 이동한 API를 원본 소스에서 사용하고, 이전 SDK로 빌드할 때는 `build/legacy-sources`에 이전 패키지 경로를 적용한 소스를 생성합니다. 두 배포본의 기능 구현은 동일합니다.
 
 `TIBERO_POC_BUILD`로 결과물 경로를 분리할 수 있습니다. 지원 범위 밖의 SDK는 빌드 시작 시 거부합니다. 각 프로필의 상세 범위와 빌드 명령은 [배포 가이드](RELEASING.md)를 참고하세요.
 
@@ -116,8 +116,8 @@ SQL 콘솔에서의 실제 완성 선택·삽입 및 JDBC 연결 문맥은 별�
 
 | 플러그인 버전 | 지원 IDE | 빌드 범위 |
 |---|---|---|
-| 0.7.8 | 2026.1.5–2026.2.3 | `261.27258.48`–`262.10968.63` |
-| 0.7.9 | 2026.2.4–2026.2.x | `262.11879.100`–`262.*` |
+| 0.7.10 | 2026.1.5–2026.2.3 | `261.27258.48`–`262.10968.63` |
+| 0.7.11 | 2026.2.4–2026.2.x | `262.11879.100`–`262.*` |
 
 플러그인 ID는 `io.github.kergosdyr.tibero.database.tools`입니다. 각 API 프로필의 가장 낮은 SDK로 빌드한 결과물을 해당 범위의 IDE에서 확인합니다. 서로 다른 프로필의 SDK는 검사 명령을 나누어 실행합니다.
 

@@ -1,7 +1,7 @@
 package poc;
 
 import com.intellij.database.dialects.generic.GenericDbms;
-import com.intellij.database.dialects.generic.model.*;
+import com.intellij.database.dialects.oracle.model.*;
 import com.intellij.database.introspection.*;
 import com.intellij.database.model.ModelFactory;
 import com.intellij.database.model.DasRoutine;
@@ -16,14 +16,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /** Offline contract checks run only by the explicit sandbox ApplicationStarter. */
 final class StoredObjectsVerification {
     static void run(Project project) throws Exception {
-        var factory=DBIntrospectorFactory.getINTRO_EP().forDbms(GenericDbms.TIBERO);
-        check(factory instanceof TiberoIntrospector.Factory,"Introspector extension registration");
-        for (int major : new int[]{6, 7})
-            check(factory.isSupported(com.intellij.database.util.Version.of(major)),"Registered factory accepts Tibero " + major);
-        check(factory.createIntrospector(new DumbIntrospectionContext(project),GenericDbms.TIBERO,ModelFactory.BLACK_HOLE) instanceof TiberoIntrospector,"Real factory selection");
-        check(DBIntrospectorFactory.createIntrospector(new DumbIntrospectionContext(project),ModelFactory.BLACK_HOLE,GenericDbms.TIBERO,false) instanceof TiberoIntrospector,"Default introspector factory dispatch");
-        check(!(DBIntrospectorFactory.createIntrospector(new DumbIntrospectionContext(project),ModelFactory.BLACK_HOLE,GenericDbms.TIBERO,true) instanceof TiberoIntrospector),"Forced JDBC option selects the default introspector instead of Tibero catalogue enrichment");
-        var introspector=factory.createIntrospector(new DumbIntrospectionContext(project),GenericDbms.TIBERO,ModelFactory.BLACK_HOLE);
+        var introspector=DBIntrospectorFactory.createIntrospector(new DumbIntrospectionContext(project),ModelFactory.BLACK_HOLE,GenericDbms.TIBERO,false);
+        check(introspector.getClass().getName().startsWith("com.intellij.database."),"IDE JDBC introspector handles Tibero without a private factory");
         var sinkType=DBIntrospector.class.getMethod("getErrorSink").getReturnType();
         var reported=new AtomicReference<String>();
         var error=new java.sql.SQLException("sample error");
@@ -37,10 +31,10 @@ final class StoredObjectsVerification {
         IdeCompatibility.report(introspector,"catalogue failure",error);
         check("catalogue failure".equals(reported.get()),"Version-specific error sink receives failures");
         var model=ModelFactory.BLACK_HOLE.createModel(GenericDbms.TIBERO);
-        var target=new AtomicReference<GenericSchema>();
-        var untouched=new AtomicReference<GenericSchema>();
-        model.modify(GenericRoot.class,root -> {
-            var db=root.getDatabases().createOrGet("TEST");
+        var target=new AtomicReference<OraSchema>();
+        var untouched=new AtomicReference<OraSchema>();
+        model.modify(OraRoot.class,root -> {
+            var db=root;
             var schema=db.getSchemas().createOrGet("MixedCase"); target.set(schema);
             schema.getTables().createOrGet("KEEP_TABLE");
             schema.getViews().createOrGet("KEEP_VIEW");
@@ -53,33 +47,29 @@ final class StoredObjectsVerification {
             if(stream==null) throw new AssertionError("Missing catalogue fixture");
             fixture=List.of(new com.google.gson.Gson().fromJson(new String(stream.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8),TiberoStoredObjects.Entry[].class));
         }
-        TiberoIntrospector.refresh(schema,() -> fixture);
+        TiberoStoredObjects.refresh(schema,() -> fixture);
         check(schema.getRoutines().size()==2 && schema.getPackages().size()==2,"Functions, procedures and empty packages appear in native model");
-        var guarded=TiberoIntrospector.preserveUntilSnapshot(schema.getRoutines());
-        check(guarded.jbi().size()==2,"JDBC argument loader can still iterate existing routines");
-        model.modify(schema,GenericSchema.class,mod -> { guarded.markChildrenAsSyncPending(); guarded.removeSyncPendingChildren(); });
-        check(schema.getRoutines().size()==2 && schema.getRoutines().stream().noneMatch(r -> r.isSyncPending()),"JDBC cannot prune before a complete catalogue snapshot");
         var fn=schema.getRoutines().find(r -> r.getName().equals("Fn"));
         var proc=schema.getRoutines().find(r -> r.getName().equals("Proc"));
         var pkg=schema.getPackages().find(p -> p.getName().equals("Pkg"));
         check(fn.getRoutineKind()==DasRoutine.Kind.FUNCTION && proc.getRoutineKind()==DasRoutine.Kind.PROCEDURE,"Routine kind retained");
-        check("Tibero status: INVALID".equals(proc.getComment()) && "Tibero status: INVALID".equals(pkg.getComment()),"Invalid status remains visible in generic model comments");
+        check(proc.isInvalid() && pkg.isInvalid(),"Invalid status retained in the native model");
         check(fn.getSchema().equals(schema) && pkg.getParent().equals(schema),"Native schema hierarchy");
         var loader=new TiberoViewLoader();
         check(loader.sqlProcedureDefinition(fn).first.contains("OWNER = 'MixedCase'") && loader.sqlProcedureDefinition(fn).first.contains("TYPE = 'FUNCTION'"),"Discovered function routes to source loader");
         check(loader.sqlProcedureDefinition(proc).first.contains("TYPE = 'PROCEDURE'"),"Procedure source routing");
         check(loader.sqlPackageDefinition(pkg).first.contains("TYPE = 'PACKAGE'") && loader.sqlPackageBodyDefinition(pkg).first.contains("TYPE = 'PACKAGE BODY'"),"Package specification and body routing");
-        TiberoIntrospector.refresh(schema,() -> fixture);
+        TiberoStoredObjects.refresh(schema,() -> fixture);
         check(schema.getRoutines().size()==2 && schema.getPackages().size()==2,"Refresh is idempotent");
         check(schema.getRoutines().find(r -> r.getName().equals("Fn")).equals(fn),"Refresh preserves existing object identity");
-        try { TiberoIntrospector.refresh(schema,() -> { throw new java.sql.SQLException("permission denied"); }); throw new AssertionError("Failure expected"); }
+        try { TiberoStoredObjects.refresh(schema,() -> { throw new java.sql.SQLException("permission denied"); }); throw new AssertionError("Failure expected"); }
         catch(java.sql.SQLException expected) { check(schema.getRoutines().size()==2 && schema.getPackages().size()==2,"Query failure preserves existing nodes"); }
-        try { TiberoIntrospector.refresh(schema,() -> List.of(new TiberoStoredObjects.Entry("OTHER","BAD","FUNCTION","VALID"))); throw new AssertionError("Wrong schema accepted"); }
+        try { TiberoStoredObjects.refresh(schema,() -> List.of(new TiberoStoredObjects.Entry("OTHER","BAD","FUNCTION","VALID"))); throw new AssertionError("Wrong schema accepted"); }
         catch(IllegalArgumentException expected) { check(schema.getRoutines().size()==2,"Validation failure preserves existing nodes"); }
-        TiberoIntrospector.refresh(schema,() -> List.of(entry("Fn","PROCEDURE","VALID"),entry("BodyOnly","PACKAGE BODY","VALID")));
+        TiberoStoredObjects.refresh(schema,() -> List.of(entry("Fn","PROCEDURE","VALID"),entry("BodyOnly","PACKAGE BODY","VALID")));
         check(schema.getRoutines().size()==1 && schema.getRoutines().first().getRoutineKind()==DasRoutine.Kind.PROCEDURE,"Drop and kind change reflected");
         check(schema.getPackages().size()==1 && schema.getPackages().first().getName().equals("BodyOnly"),"Package/body coalescing and dropped package cleanup");
-        TiberoIntrospector.refresh(schema,List::of);
+        TiberoStoredObjects.refresh(schema,List::of);
         check(schema.getRoutines().isEmpty() && schema.getPackages().isEmpty(),"Successful empty catalogue removes stale nodes");
         check(schema.getTables().size()==1 && schema.getViews().size()==1 && untouched.get().getRoutines().size()==1,"Tables/views and unselected schemas are untouched");
         check(TiberoStoredObjects.sql("O'WNER").contains("OWNER = 'O''WNER'"),"Schema literal escaped exactly");
@@ -93,7 +83,7 @@ final class StoredObjectsVerification {
         NativeTreeVerification.run(project,schema);
 
     }
-    private static void checkCachedColumnTypes(Project project,GenericSchema schema) {
+    private static void checkCachedColumnTypes(Project project,OraSchema schema) {
         // Types cached by the pre-fix JDBC path, as makeDasType built them from raw Tibero values; the rest must stay.
         Object[][] cases={
                 {"TS","TIMESTAMP(6)",6,6,93,"TIMESTAMP(6,6)","TIMESTAMP(6)"}, {"TS_LEN","TIMESTAMP",11,6,93,"TIMESTAMP(11,6)","TIMESTAMP(6)"},
@@ -103,7 +93,7 @@ final class StoredObjectsVerification {
                 {"TS0","TIMESTAMP(0)",-1,0,93,"TIMESTAMP(0)","TIMESTAMP(0)"},
                 {"IDS","INTERVAL DAY(2) TO SECOND(6)",-1,0,1111,"INTERVAL DAY(2) TO SECOND(6)","INTERVAL DAY(2) TO SECOND(6)"},
                 {"V","VARCHAR2",20,0,12,"VARCHAR2(20)","VARCHAR2(20)"}};
-        schema.getModel().modify(schema,GenericSchema.class,mod -> {
+        schema.getModel().modify(schema,OraSchema.class,mod -> {
             var table=mod.getTables().createOrGet("TYPE_REPAIR");
             for(var c:cases) {
                 var column=table.getColumns().createOrGet((String)c[0]);
@@ -120,10 +110,10 @@ final class StoredObjectsVerification {
         String ddl=ddl(project,schema,table).toUpperCase(java.util.Locale.ROOT);
         check(ddl.contains("TIMESTAMP(6)") && !ddl.matches("(?s).*TIMESTAMP\\(\\d+\\s*,.*") && !ddl.contains("DATE("),"Actual DDL generator uses corrected types: " + ddl);
         System.out.println("PASS: actual CREATE TABLE DDL emits TIMESTAMP(6)/DATE after repairing cached TIMESTAMP(6,6)/DATE(7)");
-        schema.getModel().modify(schema,GenericSchema.class,mod -> table.drop());
+        schema.getModel().modify(schema,OraSchema.class,mod -> table.drop());
     }
-    private static void checkRoutineExecution(Project project,GenericSchema schema) {
-        schema.getModel().modify(schema,GenericSchema.class,mod -> {
+    private static void checkRoutineExecution(Project project,OraSchema schema) {
+        schema.getModel().modify(schema,OraSchema.class,mod -> {
             var routines=mod.familyOf(com.intellij.database.model.ObjectKind.ROUTINE);
             var function=(com.intellij.database.model.basic.BasicModRoutine)routines.createNewOne();
             function.setName("FN_AGE"); function.setRoutineKind(DasRoutine.Kind.FUNCTION);
@@ -166,7 +156,7 @@ final class StoredObjectsVerification {
                 && !TiberoSessions.preferOracleDialect(chosen) && "PostgreSQL".equals(chosen.getSqlDialect())
                 && !TiberoSessions.preferOracleDialect(other) && "GenericSQL".equals(other.getSqlDialect()),"Only GenericSQL Tibero drivers switch to Oracle");
         System.out.println("PASS: real console path (driver dialect) resolves Tibero data sources to Oracle; user-chosen dialects and other drivers untouched");
-        schema.getModel().modify(schema,GenericSchema.class,mod -> mod.familyOf(com.intellij.database.model.ObjectKind.ROUTINE)
+        schema.getModel().modify(schema,OraSchema.class,mod -> mod.familyOf(com.intellij.database.model.ObjectKind.ROUTINE)
                 .remove(r -> r instanceof com.intellij.database.model.basic.BasicNamedElement n && List.of("FN_AGE","DO_IT").contains(n.getName())));
     }
     private static void checkConsoleHelpers(Project project) throws Exception {
@@ -248,7 +238,7 @@ final class StoredObjectsVerification {
         try { TiberoDbLinks.snapshot("MixedCase",java.util.Collections.singletonList(new String[]{"OTHER","BAD",null,null,null})); throw new AssertionError("Wrong owner accepted"); }
         catch(IllegalArgumentException expected) {}
     }
-    private static void checkMetadata(Project project,GenericSchema schema) throws Exception {
+    private static void checkMetadata(Project project,OraSchema schema) throws Exception {
         var metadata=proxy(RemoteDatabaseMetaData.class,(o,m,args) -> { throw new AssertionError("Broken JDBC metadata path invoked: " + m.getName()); });
         var source=com.intellij.database.dataSource.LocalDataSource.temporary();
         var point=proxy(com.intellij.database.dataSource.DatabaseConnectionPoint.class,(o,m,args) -> {
@@ -280,7 +270,7 @@ final class StoredObjectsVerification {
     private static Object[] column(int position,String name,int jdbc,String type,Integer size,Integer digits) {
         return new Object[]{null,"MixedCase","T",name,jdbc,type,size,0,digits,10,1,null,null,0,0,0,position,"YES",null,null,null,null,"NO"};
     }
-    private static void checkColumnPipeline(Project project,DatabaseConnectionCore connection,GenericSchema schema) throws Exception {
+    private static void checkColumnPipeline(Project project,DatabaseConnectionCore connection,OraSchema schema) throws Exception {
         var expected=new LinkedHashMap<String,String>();
         var rows=new ArrayList<Object[]>();
         Object[][] cases={
@@ -310,7 +300,7 @@ final class StoredObjectsVerification {
             while(columns.hasNext()) { var c=columns.next(); read.add(new Object[]{c.name,c.typeName,c.length,c.scale,c.typeSuffix,c.type}); }
         }
         var actual=new LinkedHashMap<String,String>();
-        schema.getModel().modify(schema,GenericSchema.class,mod -> {
+        schema.getModel().modify(schema,OraSchema.class,mod -> {
             var table=mod.getTables().createOrGet("PIPELINE");
             for(var c:read) {
                 var column=table.getColumns().createOrGet((String)c[0]);
@@ -324,7 +314,7 @@ final class StoredObjectsVerification {
         for(var e:expected.entrySet()) check(ddl.contains(e.getKey()+" "+e.getValue()),"Generated DDL keeps " + e.getKey() + " " + e.getValue() + ": " + ddl);
         check(!ddl.matches(".*TIMESTAMP\\(\\d+\\s*,.*") && !ddl.contains("DATE("),"Generated DDL has no doubled timestamp precision or sized DATE: " + ddl);
         System.out.println("PASS: Tibero getColumns() shapes -> native model -> CREATE TABLE DDL (" + expected.size() + " types)");
-        schema.getModel().modify(schema,GenericSchema.class,mod -> table.drop());
+        schema.getModel().modify(schema,OraSchema.class,mod -> table.drop());
     }
     // Columns and NULLs of Tibero 6 TbDatabaseMetaQuery.QUERY_PROCEDURE_COLUMNS: ORDINAL_POSITION is always NULL and
     // the function result row has no ARGUMENT_NAME and COLUMN_TYPE 5.
@@ -332,7 +322,7 @@ final class StoredObjectsVerification {
     private static Object[] argument(String pkg,String routine,String name,int mode,int jdbc,String type,Integer precision,Integer length,Integer scale,Integer octets) {
         return new Object[]{pkg,"MixedCase",routine,name,mode,jdbc,type,precision,length,scale,10,1,null,null,null,null,octets,null,"YES",null};
     }
-    private static void checkArgumentPipeline(DatabaseConnectionCore connection,GenericSchema schema) throws Exception {
+    private static void checkArgumentPipeline(DatabaseConnectionCore connection,OraSchema schema) throws Exception {
         var remote=rows(ARGUMENT_NAMES,List.of(
                 argument(null,"FN_AGE",null,5,2,"NUMBER",22,22,null,null),
                 argument(null,"FN_AGE","P_FROM",1,93,"TIMESTAMP",11,11,6,null),
@@ -371,12 +361,12 @@ final class StoredObjectsVerification {
         check(!calls.contains("getFunctionColumns") && calls.contains("getProcedureColumns"),"Only valid ALL_ARGUMENTS driver SQL used: " + calls);
         System.out.println("PASS: JDBC routine arguments via getProcedureColumns only; getFunctionColumns (JDBC-8012) never called");
     }
-    private static String ddl(Project project,GenericSchema schema,Object table) {
+    private static String ddl(Project project,OraSchema schema,Object table) {
         var task=new com.intellij.database.script.generator.ScriptingSingleModelTaskBuilder(schema.getModel(),com.intellij.database.script.generator.ScriptCategory.CREATE_DEFINITION);
         task.addElements(List.of((com.intellij.database.model.basic.BasicElement)table)); task.setReformat(false);
         return new com.intellij.database.dialects.generic.generator.GenericScriptGenerator(GenericDbms.TIBERO).makeScript(project,task.build()).getScriptText();
     }
-    private static RemoteResultSet rows(String[] names,List<Object[]> values) throws Exception {
+    static RemoteResultSet rows(String[] names,List<Object[]> values) throws Exception {
         var rs=javax.sql.rowset.RowSetProvider.newFactory().createCachedRowSet();
         var meta=new javax.sql.rowset.RowSetMetaDataImpl();
         meta.setColumnCount(names.length);
@@ -408,7 +398,7 @@ final class StoredObjectsVerification {
             catch(java.lang.reflect.InvocationTargetException e) { throw e.getCause(); }
         });
     }
-    private static void checkSequences(GenericSchema schema,GenericSchema other) throws Exception {
+    private static void checkSequences(OraSchema schema,OraSchema other) throws Exception {
         var range=TiberoSequences.identity("1","2000","1","9999999999999999999999999999");
         var fixture=List.of(new TiberoSequences.Entry("MixedCase","Seq.Mixed",range),new TiberoSequences.Entry("MixedCase","UPPER_SEQ"));
         TiberoSequences.refresh(schema,() -> fixture);
@@ -481,7 +471,7 @@ final class StoredObjectsVerification {
         });
         var remote=proxy(RemoteConnection.class,(o,m,args) -> { if(m.getName().equals("createStatement")) return statement; throw new AssertionError("Unexpected connection mutation: " + m.getName()); });
         var connection=proxy(DatabaseConnectionCore.class,(o,m,args) -> { if(m.getName().equals("getRemoteConnection")) return remote; throw new AssertionError(m.getName()); });
-        check(TiberoIntrospector.readCatalog(connection,"MixedCase").equals(fixture),"Remote JDBC column mapping");
+        check(TiberoStoredObjects.readCatalog(connection,"MixedCase").equals(fixture),"Remote JDBC column mapping");
         check(closed[0] && closed[1],"Result set and statement closed without transaction changes");
     }
     private static void check(boolean condition,String message) { if(!condition) throw new AssertionError(message); }

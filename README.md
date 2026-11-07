@@ -29,7 +29,7 @@ When calling a function from a package or working with a procedure that has many
 
 Open and edit the source code of procedures, functions, package specifications and bodies, and views.
 
-In IntelliJ IDEA 2026.2, source editing integrates with **Submit**, allowing you to apply `CREATE OR REPLACE` changes to the associated data source.
+In IntelliJ IDEA 2026.1.5–2026.2.x, source editing integrates with **Submit**, allowing you to apply `CREATE OR REPLACE` changes to the associated data source.
 
 Submit executes DDL against the database, so verify the target object and connection before applying changes.
 
@@ -68,9 +68,7 @@ Explain Analyse executes the query against the database. Consider the database w
 
 ### 5. Database Link Exploration and Remote SQL Completion
 
-Browse private and PUBLIC database links under the `dblinks` group in each schema. Double-click a link or press Enter to open its reconstructed creation DDL. You can also navigate to a link definition from an `@link_name` reference in SQL.
-
-By mapping a database link to a remote data source, you can complete remote table and column names in SQL and navigate to their definitions.
+Database links are integrated into IntelliJ IDEA's native Database tree. Private links appear under their respective schemas, while PUBLIC links appear under the PUBLIC schema. Double-click a link or press Enter to open its reconstructed DDL, or navigate to its definition directly from SQL. Remote table and column completion uses an explicitly mapped remote data source and schema. Existing database link catalogues and mappings are preserved, and previously collected Generic metadata is migrated to the dedicated Tibero model while retaining tables, columns, packages, routines, and schema selections.
 
 ```sql
 SELECT o.ID, o.AMOUNT, o.CREATED_AT
@@ -123,8 +121,8 @@ Tibero Database Tools provides the same features in two distributions to accommo
 
 | Plugin Version | Supported IntelliJ IDEA | Build Range | Distribution |
 |---|---|---|---|
-| **0.7.8** | 2026.1.5–2026.2.3 | `261.27258.48`–`262.10968.63` | `tibero-database-tools-0.7.8-signed.zip` |
-| **0.7.9** | 2026.2.4–2026.2.x | `262.11879.100`–`262.*` | `tibero-database-tools-0.7.9-signed.zip` |
+| **0.7.10** | 2026.1.5–2026.2.3 | `261.27258.48`–`262.10968.63` | `tibero-database-tools-0.7.10-signed.zip` |
+| **0.7.11** | 2026.2.4–2026.2.x | `262.11879.100`–`262.*` | `tibero-database-tools-0.7.11-signed.zip` |
 
 Both versions provide identical functionality and use the same plugin ID. When installing manually, choose the distribution matching your IDE version. JetBrains Marketplace selects the compatible plugin version for your IDE.
 

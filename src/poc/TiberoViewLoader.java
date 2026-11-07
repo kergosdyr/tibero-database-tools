@@ -29,6 +29,10 @@ public final class TiberoViewLoader extends JdbcSourceLoader {
         return Pair.create(viewSql(DasUtil.getSchema(view), view.getName()), ConcatenationProps.NO_CONCAT);
     }
     @Override public Pair<String, ConcatenationProps> sqlProcedureDefinition(DasRoutine routine) {
+        if(routine.getRoutineKind()==DasRoutine.Kind.NONE)
+            return Pair.create("SELECT TEXT FROM ALL_SOURCE WHERE OWNER = " + TiberoCatalog.literal(DasUtil.getSchema(routine))
+                    + " AND NAME = " + TiberoCatalog.literal(routine.getName())
+                    + " AND TYPE IN ('PROCEDURE', 'FUNCTION') ORDER BY LINE",ConcatenationProps.TIGHT);
         return source(routine, routine.getRoutineKind().name());
     }
     @Override public Pair<String, ConcatenationProps> sqlPackageDefinition(DasObject object) { return source(object, "PACKAGE"); }
@@ -50,6 +54,18 @@ public final class TiberoViewLoader extends JdbcSourceLoader {
         var text=new StringBuilder();
         for(var row:TiberoRoutineReader.query(connection,query.first,1)) if(row[0]!=null) text.append(row[0]);
         return text.toString();
+    }
+    static String readStoredSource(DatabaseConnectionCore connection,String schema,TiberoStoredObjects.ObjectInfo object)
+            throws java.sql.SQLException,java.rmi.RemoteException {
+        String declaration=TiberoSourceText.ddl(schema,read(connection,Pair.create(
+                TiberoCatalog.sourceSql(schema,object.name(),object.type()),ConcatenationProps.TIGHT)));
+        if(!object.type().equals("PACKAGE")) return declaration;
+        String body=TiberoSourceText.ddl(schema,read(connection,Pair.create(
+                TiberoCatalog.sourceSql(schema,object.name(),"PACKAGE BODY"),ConcatenationProps.TIGHT)));
+        return TiberoSourceText.packageSource(declaration,body);
+    }
+    void applyStoredSource(BasicModSourceAware object,String text) {
+        applySourceText(object,text.isEmpty() ? null : text,false);
     }
     private static Pair<String, ConcatenationProps> source(DasObject object, String type) {
         return Pair.create(TiberoCatalog.sourceSql(DasUtil.getSchema(object), object.getName(), type), ConcatenationProps.TIGHT);

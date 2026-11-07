@@ -1,76 +1,88 @@
-# Tibero Database Tools 0.7.8 / 0.7.9
+# Tibero Database Tools 0.7.10 / 0.7.11
 
-Tibero Database Tools extends IntelliJ IDEA's built-in Database Tools with Tibero-specific object exploration, PL/SQL development, SQL completion, and execution plan analysis.
+Tibero Database Tools now integrates Tibero-specific metadata and database objects through public IntelliJ Platform APIs.
 
-This release improves database link navigation, IDE compatibility, and integration with public IntelliJ Platform APIs. It also introduces English-first documentation and provides a signed distribution package.
+This update improves database model integration, metadata refresh, and compatibility with existing IDE data source caches while preserving the plugin's seven core feature groups.
 
-## What's New
+## What's Changed
 
-### Database Link Navigation
+### Public API Integration
 
-- Resolve known `@LINK` references in SQL and navigate to reconstructed database link DDL.
-- Open database link definitions by double-clicking a link or pressing Enter in the Database tool window.
-- Improve navigation behavior with the current IntelliJ IDEA navigation API.
-- Preserve database link catalogues and remote data source mappings across IDE restarts.
+Database metadata refresh now uses public `jdbcMetadataWrapper` and `DatabaseModelLoader.Listener` APIs.
 
-### IDE Compatibility and Integration
+A dedicated Tibero model is created through `ModelFacade`, reusing the public `OraMetaModel` contracts for schemas and database links. Existing Generic and Oracle global models remain unchanged.
 
-- Replace six internal API usages with public alternatives for type metadata, application startup events, and Database tool window access.
-- Update the Grid Core dependency for IntelliJ IDEA 2026.2.
-- Maintain binary compatibility with supported IntelliJ IDEA 2026.1 and 2026.2 builds, as checked by Plugin Verifier.
+### Native Database Link Support
 
-### Documentation and Distribution
+Database links are represented as native objects in the Database tool window.
 
-- Make English the primary README language while retaining the Korean documentation in `README.ko.md`.
-- Update product descriptions and installation instructions.
-- Provide the signed distribution package, `tibero-database-tools-0.7.8-signed.zip`, for release.
+- Private links appear under their respective schemas.
+- PUBLIC links appear under the PUBLIC schema.
+- Double-click, Enter, and SQL definition navigation open reconstructed link DDL.
+- Database link, remote table, and column completion remain available through mapped remote data sources.
 
-## Features
+### Metadata Refresh and Cache Migration
 
-| Feature | Description |
+Existing Generic data source caches are migrated through the public `DataSourceModelStorage.Listener`.
+
+Migration preserves tables, columns, packages, routines, and selected schemas. The original cache is retained with a `.tibero-generic-backup` suffix.
+
+Existing database link catalogues and remote mappings are reused.
+
+Catalogue refreshes preserve previous data when collection fails or is cancelled. Successfully collected snapshots are reconciled with the database model, including removal of obsolete entries when a successful snapshot is empty.
+
+Package and routine identities, signatures, sources, DDL, and sequences are maintained.
+
+### Source Editing
+
+Source editing and Submit integration are available across the supported IntelliJ IDEA versions, including 2026.1.5, 2026.2.3, and 2026.2.4.
+
+Submit executes DDL against the selected data source.
+
+## Version Compatibility
+
+Both versions provide identical functionality and use the plugin ID `io.github.kergosdyr.tibero.database.tools`.
+
+| Version | IntelliJ IDEA | Build Range |
+|---|---|---|
+| **0.7.10** | 2026.1.5–2026.2.3 | `261.27258.48`–`262.10968.63` |
+| **0.7.11** | 2026.2.4–2026.2.x | `262.11879.100`–`262.*` |
+
+## Installation
+
+Choose the signed distribution matching your IDE version:
+
+- `tibero-database-tools-0.7.10-signed.zip`
+- `tibero-database-tools-0.7.11-signed.zip`
+
+[GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases)
+
+Install through **Settings → Plugins → Install Plugin from Disk…**, then restart IntelliJ IDEA.
+
+The plugin requires Database Tools and SQL, Diagrams, and a separately supplied Tibero JDBC driver JAR.
+
+Submitted updates require JetBrains review.
+
+---
+
+## 한국어 요약
+
+### 주요 변경 사항
+
+이번 0.7.10 / 0.7.11에서는 Tibero 메타데이터 수집과 객체 모델 구성을 IntelliJ Platform의 공개 API 기반으로 전환했습니다.
+
+- **DB 링크 트리 통합:** DB 링크가 IDE의 기본 Database 트리 객체로 표시되며, PUBLIC 링크는 PUBLIC 스키마 아래에 나타납니다.
+- **기존 설정 유지:** Generic 메타데이터 캐시를 변환하여 테이블, 컬럼, 패키지, 루틴과 스키마 선택 정보를 유지합니다. 원본 캐시는 별도로 보관하며 기존 DB 링크 목록과 원격 매핑도 재사용합니다.
+- **안정적인 메타데이터 갱신:** 조회 실패나 취소 시 기존 정보를 보존하고, 정상적으로 수집된 결과를 기준으로 객체를 갱신합니다.
+- **소스 편집:** IDEA 2026.1.5부터 2026.2.x까지 소스 편집 및 Submit 기능을 제공합니다.
+
+기존 7가지 주요 기능은 그대로 유지됩니다.
+
+### IDE 버전별 설치
+
+| 플러그인 | 지원 IntelliJ IDEA |
 |---|---|
-| Database Object Exploration | Browse procedures, functions, packages, package members, sequences, parameters, and overloaded signatures. |
-| Stored Object Sources | View and edit procedure, function, package, and view sources. Submit integration is available in IDEA 2026.2. |
-| PL/SQL Development | Generate routine execution blocks, collect DBMS_OUTPUT, and inspect compilation errors. |
-| Execution Plans | Explore estimated plans with tree, table, and diagram views. Explain Analyse executes SELECT/WITH queries and displays actual execution statistics. |
-| Database Links | Browse private/PUBLIC links, open reconstructed DDL, and complete mapped remote tables and columns. |
-| Catalogue Queries | Prepare SQL to inspect definitions, dependencies, triggers, synonyms, sequences, and privileges. |
-| SQL and JDBC Integration | Oracle SQL/PLSQL dialect integration, synonym resolution, and Tibero-specific metadata corrections. |
+| **0.7.10** | 2026.1.5–2026.2.3 |
+| **0.7.11** | 2026.2.4–2026.2.x |
 
-## Installation and Getting Started
-
-**Supported IDE:** IntelliJ IDEA 2026.1.5–2026.2.x<br>
-**Required plugins:** Database Tools and SQL, Diagrams<br>
-**Plugin ID:** `io.github.kergosdyr.tibero.database.tools`
-
-### Choose the Right Version
-
-Tibero Database Tools provides the same features in two distributions to accommodate JDBC API changes in IntelliJ IDEA 2026.2.4.
-
-| Plugin Version | Supported IntelliJ IDEA | Build Range | Distribution |
-|---|---|---|---|
-| **0.7.8** | 2026.1.5–2026.2.3 | `261.27258.48`–`262.10968.63` | `tibero-database-tools-0.7.8-signed.zip` |
-| **0.7.9** | 2026.2.4–2026.2.x | `262.11879.100`–`262.*` | `tibero-database-tools-0.7.9-signed.zip` |
-
-Both versions provide identical functionality and use the same plugin ID. When installing manually, choose the distribution matching your IDE version. JetBrains Marketplace selects the compatible plugin version for your IDE.
-
-### Installation Steps
-
-1. Enable **Database Tools and SQL** and **Diagrams** in IntelliJ IDEA.
-2. Download the ZIP matching your IDE version from [GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases).
-3. If you have an earlier preview installed under `local.tibero.offline-poc`, uninstall it before installing the new version. Existing DB link catalogues and mappings are preserved.
-4. Open <strong>Settings → Plugins → ⚙ → Install Plugin from Disk…</strong>, select the downloaded ZIP, and restart the IDE.
-5. Configure a Tibero data source in the Database tool window, register a separately supplied **Tibero JDBC driver JAR** appropriate for your server, and test the connection.
-6. Select the schemas you want to work with and click **Refresh** to load their metadata.
-
-You can invoke basic code completion in SQL consoles with `Ctrl+Space`. The shortcut may vary depending on your IDE keymap.
-
-## Documentation
-
-- [README — English](https://github.com/kergosdyr/tibero-database-tools/blob/main/README.md)
-- [README — 한국어](https://github.com/kergosdyr/tibero-database-tools/blob/main/README.ko.md)
-- [User Guide — 한국어](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/USAGE.ko.md)
-- [API Compatibility Review](https://github.com/kergosdyr/tibero-database-tools/blob/main/docs/MARKETPLACE-REVIEW.md)
-- [Source Code and Issues](https://github.com/kergosdyr/tibero-database-tools)
-
-**License:** Apache License 2.0
+[GitHub Releases](https://github.com/kergosdyr/tibero-database-tools/releases)에서 IDE 버전에 맞는 ZIP을 선택해 설치하세요.

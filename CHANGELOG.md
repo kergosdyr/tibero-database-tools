@@ -2,6 +2,13 @@
 
 Tibero Database Tools의 버전별 주요 변경 사항입니다.
 
+## 0.7.10 / 0.7.11
+
+- **Public API migration:** Replaced the Internal `DBIntrospector.Factory` extension and its eight overridden methods with public `jdbcMetadataWrapper` and `DatabaseModelLoader.Listener` APIs. Removed the Internal `DvFamilyHierarchyDescriptor` dependency and introduced a dedicated Tibero model using public `ModelFacade` and `OraMetaModel` contracts.
+- **Native database link integration:** Database links are now represented as native Database tree objects, with PUBLIC links displayed under the PUBLIC schema. DDL navigation, remote SQL completion, and persistent mappings are preserved.
+- **Metadata refresh and cache migration:** Added catalogue snapshot reconciliation and migration of existing Generic caches through `DataSourceModelStorage.Listener`. Existing objects and schema selections are preserved, with original caches backed up. Failed or cancelled refreshes retain existing catalogue data; successful empty snapshots remove obsolete entries.
+- **IDE compatibility:** Version 0.7.10 supports IntelliJ IDEA 2026.1.5–2026.2.3, and 0.7.11 supports 2026.2.4–2026.2.x. Source editing and Submit integration are supported across both distributions.
+
 ## 0.7.9
 
 - **IntelliJ IDEA 2026.2.4 호환성:** IDEA 2026.2.4(build 262.11879.100)에서 변경된 JetBrains JDBC API 클래스 경로에 대응했습니다.

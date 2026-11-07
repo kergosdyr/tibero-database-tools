@@ -9,12 +9,7 @@ import java.util.*;
 
 final class NativeTreeVerification {
     static void run(Project project,BasicSchema schema) {
-        TiberoDatabaseTree.install();
-        if(TiberoDatabaseTree.PREFIX==null) {
-            System.out.println("LIMITATION: this IDE has no extra-node Database tree API; DB links are not shown in this IDE");
-            return;
-        }
-        Class<?> optionType=TiberoDatabaseTree.type("DvViewOptions");
+        Class<?> optionType=type("DvViewOptions");
         var options=Proxy.newProxyInstance(optionType.getClassLoader(),new Class<?>[]{optionType},(p,m,a) -> {
             if(m.getReturnType()==boolean.class) return m.getName().equals("getGroupSchemaObjects");
             if(m.getReturnType()==long.class) return 0L;
@@ -22,15 +17,15 @@ final class NativeTreeVerification {
             throw new AssertionError(m.getName());
         });
         Object context;
-        if(Arrays.stream(TiberoDatabaseTree.type("DvTreeContext").getConstructors()).anyMatch(c -> c.getParameterCount()==2)) context=TiberoDatabaseTree.construct("DvTreeContext",project,options);
-        else context=TiberoDatabaseTree.construct("DvTreeContext",project,options,com.intellij.openapi.diagnostic.Logger.getInstance(NativeTreeVerification.class));
+        if(Arrays.stream(type("DvTreeContext").getConstructors()).anyMatch(c -> c.getParameterCount()==2)) context=construct("DvTreeContext",project,options);
+        else context=construct("DvTreeContext",project,options,com.intellij.openapi.diagnostic.Logger.getInstance(NativeTreeVerification.class));
         var root=new Layer("DvTreeRootLayer",context);
         var model=new Layer("DvTreeModelLayer",root.value);
         Layer tree,layout;
         boolean layoutFirst=false;
         try {
-            var t=TiberoDatabaseTree.construct("DvTreeTransformLayer");
-            var l=TiberoDatabaseTree.construct("DvTreeLayoutLayer");
+            var t=construct("DvTreeTransformLayer");
+            var l=construct("DvTreeLayoutLayer");
             layoutFirst=((Number)t.getClass().getMethod("getLevel").invoke(t)).intValue()>((Number)l.getClass().getMethod("getLevel").invoke(l)).intValue();
         } catch(NoSuchMethodException ignored) {} catch(ReflectiveOperationException e) { throw new AssertionError(e); }
         if(layoutFirst) { layout=new Layer("DvTreeLayoutLayer",model.value); tree=new Layer("DvTreeTransformLayer",layout.value); }
@@ -47,49 +42,33 @@ final class NativeTreeVerification {
             checkObjectsVisibleWithoutLinks(tree,optimized,schema,"before any db link refresh (IDE start)");
             var staging=com.intellij.database.model.ModelFactory.BLACK_HOLE.createModel(GenericDbms.TIBERO);
             var stagingSchema=new java.util.concurrent.atomic.AtomicReference<BasicSchema>();
-            staging.modify(com.intellij.database.dialects.generic.model.GenericRoot.class,r -> stagingSchema.set(r.getDatabases().createOrGet("TEST").getSchemas().createOrGet(schema.getName())));
+            staging.modify(com.intellij.database.dialects.oracle.model.OraRoot.class,r -> stagingSchema.set(r.getSchemas().createOrGet(schema.getName())));
             TiberoDatabaseTree.update(source,stagingSchema.get(),List.of(new TiberoDbLinks.Entry(schema.getName(),"REMOTE","APP","TB6",null),new TiberoDbLinks.Entry("PUBLIC","REMOTE","PUB","TB7",null)));
             var children=list(tree.childrenOf(schema));
-            var group=children.stream().filter(n -> n.getDisplayName().startsWith(com.intellij.database.model.ObjectKind.DB_LINK.getPluralPresentableName())).findFirst().orElseThrow(() -> new AssertionError("Native schema children omit db link: " + children));
-            if(!group.getDisplayName().equals(com.intellij.database.model.ObjectKind.DB_LINK.getPluralPresentableName() + " (2)")) throw new AssertionError("db link group shows its link count: " + group.getDisplayName());
-            if(tree.parentOf(group)!=schema) throw new AssertionError("db link must be beneath actual schema");
+            var group=children.stream().filter(n -> n instanceof com.intellij.database.model.families.Family<?> f && f.getMetaObject().kind==com.intellij.database.model.ObjectKind.DB_LINK).findFirst().orElseThrow(() -> new AssertionError("Native schema children omit DB links: " + children));
             var links=list(tree.childrenOf(group));
-            checkDoubleClickPolicy(links.get(0),group);
-            if(links.size()!=2 || !links.get(0).getDisplayName().equals("REMOTE") || !links.get(1).getDisplayName().equals("REMOTE [PUBLIC]")) throw new AssertionError("Private/public native link nodes: " + links);
-            if(com.intellij.database.view.DbNodeDescriptorHelper.getNodeIcon(project,links.get(0))!=icons.DatabaseIcons.DatabaseLink) throw new AssertionError("db link node icon is not the IDE database link icon");
-            try {
-                var method=com.intellij.database.view.DbNodeDescriptor.class.getDeclaredMethod("getNavigatable",Project.class,BasicNode.class);
-                method.setAccessible(true);
-                var navigation=(com.intellij.pom.Navigatable)method.invoke(null,project,links.get(0));
-                if(navigation==null || !navigation.canNavigateToSource()) throw new AssertionError("Native DB link source navigation missing");
-                for(var api:com.intellij.pom.Navigatable.class.getMethods())
-                    if(api.getName().equals("navigationRequest") && api.getParameterCount()==0) {
-                        try {
-                            var application=com.intellij.openapi.application.ApplicationManager.getApplication();
-                            application.executeOnPooledThread(()->application.runReadAction(()-> {
-                                try { api.invoke(navigation); } catch(ReflectiveOperationException error) { throw new AssertionError(error); }
-                            })).get(10,java.util.concurrent.TimeUnit.SECONDS);
-                        } catch(Exception failure) { throw new AssertionError(failure); }
-                    }
-            } catch(ReflectiveOperationException failure) { throw new AssertionError(failure); }
+            if(links.size()!=1 || !links.get(0).getDisplayName().equals("REMOTE")) throw new AssertionError("Private native link: " + links);
+            if(!(links.get(0) instanceof com.intellij.database.dialects.oracle.model.OraDbLink)) throw new AssertionError("DB link must be a real persistent model object");
+            if(!(((com.intellij.database.model.families.Family<?>)group).size()==1)) throw new AssertionError("DB link family count");
+            if(com.intellij.database.view.DbNodeDescriptorHelper.getNodeIcon(project,links.get(0))!=icons.DatabaseIcons.DatabaseLink) throw new AssertionError("DB link icon");
             if(!tree.parentOf(links.get(0)).equals(group) || !list(tree.childrenOf(links.get(0))).isEmpty()) throw new AssertionError("Native link parent/children");
-            if(list(optimized.childrenOf(schema)).stream().noneMatch(n -> n.equals(group)) || list(optimized.childrenOf(group)).size()!=2) throw new AssertionError("Layout/optimization hides native DB link nodes");
-            if(list(tree.childrenOf(schema.getParent())).stream().noneMatch(n -> n instanceof com.intellij.database.model.families.Family)) throw new AssertionError("Schema hierarchy preserved");
-            // Simulate loss of process-local caches, as happens on every IDE restart.
-            for(String fieldName:List.of("SNAPSHOTS")) {
-                try {
-                    var field=TiberoDatabaseTree.class.getDeclaredField(fieldName); field.setAccessible(true);
-                    ((Map<?,?>)field.get(null)).clear();
-                } catch(ReflectiveOperationException failure) { throw new AssertionError(failure); }
-            }
-            if(list(tree.childrenOf(group)).size()!=2) throw new AssertionError("DB links disappear after process-local caches are cleared (IDE restart)");
+            if(list(optimized.childrenOf(schema)).stream().noneMatch(n -> n.equals(group)) || list(optimized.childrenOf(group)).size()!=1) throw new AssertionError("Layout hides native DB links");
+            var privateLink=TiberoDatabaseTree.link(links.get(0));
+            if(privateLink==null || !TiberoDbLinkActions.ddl(privateLink.entry()).contains("CREATE DATABASE LINK")) throw new AssertionError("Private DDL navigation");
+            var publicSchema=((com.intellij.database.dialects.oracle.model.OraModel)schema.getModel()).getRoot().getSchemas().find(s -> s.getName().equals("PUBLIC"));
+            if(publicSchema==null || publicSchema.getDbLinks().size()!=1) throw new AssertionError("PUBLIC links have their actual owner schema");
+            var publicLink=TiberoDatabaseTree.link(publicSchema.getDbLinks().first());
+            if(publicLink==null || !TiberoDbLinkActions.ddl(publicLink.entry()).contains("CREATE PUBLIC DATABASE LINK")) throw new AssertionError("Public DDL navigation");
+            checkDoubleClickPolicy(links.get(0),group);
+            var action=TiberoDbLinkTreeNavigation.openAction(() -> privateLink);
+            var event=com.intellij.openapi.actionSystem.AnActionEvent.createFromAnAction(action,null,"test",id -> com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT.is(id) ? project : null);
+            action.update(event);
+            if(!event.getPresentation().isEnabled()) throw new AssertionError("DB link DDL action disabled");
             TiberoDatabaseTree.update(source,stagingSchema.get(),List.of());
-            if(!list(tree.childrenOf(group)).isEmpty()) throw new AssertionError("Native tree retains dropped links");
-            if(list(tree.childrenOf(schema)).stream().anyMatch(n -> n.getDisplayName().startsWith(com.intellij.database.model.ObjectKind.DB_LINK.getPluralPresentableName())))
-                throw new AssertionError("Schema without links still shows an empty db link group");
+            if(!list(tree.childrenOf(group)).isEmpty() || !publicSchema.getDbLinks().isEmpty()) throw new AssertionError("Native tree retains dropped links");
             checkObjectsVisibleWithoutLinks(tree,optimized,schema,"after links were dropped");
             checkSchemaScope(tree,source,schema);
-            System.out.println("PASS: actual Database tree layers expose schema → db link → private/public links; the group shows its link count and links use the database link icon; schemas without links have no group but keep their objects expandable; schema scope respected");
+            System.out.println("PASS: native Database tree renders real DB_LINK model families, private/public owners, counts, icon, DDL navigation, dropped links and schema scope");
         } finally { manager.removeDataSource(source); optimized.dispose(); layout.dispose(); tree.dispose(); model.dispose(); root.dispose(); }
     }
     private static void checkDoubleClickPolicy(BasicNode link,BasicNode group) {
@@ -128,10 +107,25 @@ final class NativeTreeVerification {
             if(!list(tree.childrenOf(schemas)).isEmpty()) throw new AssertionError("Empty schema scope shows schemas");
         } finally { source.setIntrospectionScope(previous); }
     }
+    // Test-only access to the actual tree layers; none of these implementation classes ship in the plugin.
+    private static final String PREFIX=detect();
+    private static String detect() {
+        for(var prefix:List.of("com.intellij.database.explorer.structure.","com.intellij.database.view.structure."))
+            try { Class.forName(prefix+"DvTreeModelLayer"); return prefix; } catch(ClassNotFoundException ignored) {}
+        throw new AssertionError("Missing Database tree implementation");
+    }
+    private static Class<?> type(String name) {
+        try { return Class.forName(PREFIX+name); } catch(ClassNotFoundException e) { throw new AssertionError(e); }
+    }
+    private static Object construct(String name,Object... args) {
+        for(var c:type(name).getConstructors()) if(c.getParameterCount()==args.length)
+            try { return c.newInstance(args); } catch(ReflectiveOperationException e) { throw new AssertionError(e); }
+        throw new AssertionError("Missing tree constructor: " + name);
+    }
     private static final class Layer {
         final Object value;
         Layer(String name,Object base) {
-            value=TiberoDatabaseTree.construct(name);
+            value=construct(name);
             for(var m:value.getClass().getMethods()) if(m.getName().startsWith("setup$") && m.getParameterCount()==1 && m.getParameterTypes()[0].isInstance(base)) { call(m,base); return; }
             throw new AssertionError("Missing tree setup: " + name);
         }

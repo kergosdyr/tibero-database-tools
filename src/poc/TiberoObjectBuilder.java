@@ -1,7 +1,7 @@
 package poc;
 
-import com.intellij.database.dialects.generic.model.GenericPackage;
-import com.intellij.database.dialects.sql92.Sql92ObjectBuilder;
+
+import com.intellij.database.dialects.oracle.OraObjectBuilder;
 import com.intellij.database.model.DasObject;
 import com.intellij.database.model.ObjectKind;
 import com.intellij.database.model.PsiObject;
@@ -19,20 +19,25 @@ import com.intellij.sql.psi.SqlStatement;
 import java.util.ArrayList;
 
 /**
- * The generic SQL builder keeps routine and view statements as sources but drops package text.
- * An edited package source (specification, "/", body) must survive so it can be submitted.
+ * Retains complete editable Tibero statements while using the public Oracle-compatible model builder.
  */
 public final class TiberoObjectBuilder implements SqlObjectBuilder {
-    private final SqlObjectBuilder generic=new Sql92ObjectBuilder();
-    @Override public TextRange getCompactDefinition(ObjectPath path,CompositeText text,PsiObject object) { return generic.getCompactDefinition(path,text,object); }
-    @Override public void build(SqlElement element,Context context) { generic.build(element,context); }
-    @Override public void finalize(BasicModElement element) { generic.finalize(element); }
-    @Override public void materializeInlineReferences(BasicHierarchicalObject object) { generic.materializeInlineReferences(object); }
+    private final SqlObjectBuilder modelBuilder=new OraObjectBuilder();
+    @Override public TextRange getCompactDefinition(ObjectPath path,CompositeText text,PsiObject object) { return modelBuilder.getCompactDefinition(path,text,object); }
+    @Override public void build(SqlElement element,Context context) { modelBuilder.build(element,context); }
+    @Override public void finalize(BasicModElement element) { modelBuilder.finalize(element); }
+    @Override public void materializeInlineReferences(BasicHierarchicalObject object) { modelBuilder.materializeInlineReferences(object); }
     @Override public void build(BasicModElement element,DasObject object,Context context) {
-        generic.build(element,object,context);
-        if(element instanceof GenericPackage pkg && object instanceof PsiObject psi && !context.isStubBuilder()) {
+        modelBuilder.build(element,object,context);
+        if(element.getKind()==ObjectKind.PACKAGE && object instanceof PsiObject psi && !context.isStubBuilder()) {
             String text=packageSource(psi);
-            if(text!=null) ((com.intellij.database.model.basic.BasicModSourceAware)pkg).setSourceText(new SimpleCompositeText(text,CompositeText.Kind.ORIGINAL_TEXT));
+            if(text!=null) ((com.intellij.database.model.basic.BasicModSourceAware)element).setSourceText(new SimpleCompositeText(text,CompositeText.Kind.ORIGINAL_TEXT));
+        }
+        else if((element.getKind()==ObjectKind.ROUTINE || element.getKind()==ObjectKind.VIEW)
+                && element instanceof com.intellij.database.model.basic.BasicModSourceAware source
+                && object instanceof PsiObject psi && !context.isStubBuilder()) {
+            var statement=PsiTreeUtil.getParentOfType(psi,SqlStatement.class,false);
+            if(statement!=null) source.setSourceText(new SimpleCompositeText(statement.getText().strip(),CompositeText.Kind.ORIGINAL_TEXT));
         }
     }
     /** Specification and body statements of the same package in this file, joined as TiberoViewLoader loads them. */

@@ -9,12 +9,9 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import java.util.List;
 import java.util.function.Supplier;
 
-/**
- * Source editor Submit (TiberoScriptGenerator, TiberoObjectBuilder) relies on IDE-internal scripting classes.
- * They are registered only on the release line where that path was verified; older IDEs keep generic scripting.
- */
+/** Registers public scripting extensions on the supported IDE releases. */
 public final class TiberoSourceEditing implements Disposable {
-    static final int VERIFIED_BASELINE=262;
+    static final int VERIFIED_BASELINE=261;
     public TiberoSourceEditing() {
         if(!supported()) return;
         try {
