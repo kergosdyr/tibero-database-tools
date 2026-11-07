@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 import sys
 from ide_env import product_info, java_bin
+from verifier_report import check_verifier_report
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--ide', type=Path, action='append', required=True, help='IDE Contents directory; oldest first')
@@ -16,6 +17,8 @@ args = parser.parse_args()
 root = Path(__file__).resolve().parent
 output = root / 'build/compatibility'
 output.mkdir(parents=True, exist_ok=True)
+# A failed run must not leave an earlier successful manifest as its result.
+(output / 'results.json').unlink(missing_ok=True)
 ides = [p.resolve() for p in args.ide]
 infos = [product_info(p) for p in ides]
 builds = [tuple(map(int, info['buildNumber'].split('.'))) for info in infos]
@@ -42,9 +45,11 @@ for ide, info in zip(ides, infos):
     verdicts = list((reports / name / 'plugins/io.github.kergosdyr.tibero.database.tools').glob('*/verification-verdict.txt'))
     if not verdicts:
         raise SystemExit(f'No verifier result for {name}; see {output / "verifier.log"}')
-    verdict = max(verdicts, key=lambda p: p.stat().st_mtime).read_text().strip()
-    if not verdict.startswith('Compatible.'):
-        raise SystemExit(f'Incompatible {name}: {verdict}')
+    report = max(verdicts, key=lambda p: p.stat().st_mtime).parent
+    try:
+        verdict = check_verifier_report(report)
+    except (OSError, ValueError) as error:
+        raise SystemExit(str(error)) from error
     sandbox = output / ('sandbox-' + name)
     run([sys.executable, str(root / 'verify-ide.py')], output / (name + '.log'),
         dict(os.environ, TIBERO_POC_SKIP_BUILD='1', TIBERO_POC_IDE=str(ide),
@@ -56,8 +61,9 @@ for ide, info in zip(ides, infos):
     print('PASS:', name, info['version'], flush=True)
 manifest = dict(artifact=str(artifact), sha256=hashlib.sha256(artifact.read_bytes()).hexdigest(),
                 compile_ide=infos[0]['buildNumber'], java_release=17, results=results,
+                internal_api_check='passed',
                 limitations=['No live Tibero 6/7 database', 'No Tibero 7 JDBC JAR',
                              'Headless UI/model checks; no interactive UI test for each IDE',
-                             'Internal Database Tools APIs remain version-sensitive'])
+                             'Marketplace approval requires a separate JetBrains review'])
 (output / 'results.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
 print('Compatibility results:', output / 'results.json')

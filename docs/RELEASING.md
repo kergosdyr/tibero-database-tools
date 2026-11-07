@@ -134,6 +134,18 @@ python3 check-compatibility.py \
 
 지원 IDE의 빌드 범위는 [JetBrains Build Number Ranges](https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html)를 참고합니다.
 
+### Marketplace Internal API 심사 확인
+
+릴리스 검증에서는 **Plugin Verifier의 Binary Compatible 판정과 Internal API 경고 0건을 별도 기준**으로 확인합니다. 바이너리 호환성과 런타임 테스트 통과는 Marketplace API 정책 준수나 게시 승인을 의미하지 않습니다. Internal API 경고가 남아 있다면 재제출을 중단하고 공식 공개 대체 API를 확인하며, 동등한 대체 방법이 확인되지 않으면 JetBrains에 지원 API 또는 예외 절차를 문의합니다. 심사 진행 상황은 Marketplace 웹 화면의 **Under review** 표시뿐 아니라 게시자 계정으로 수신한 이메일과 기존 심사 스레드를 함께 확인해야 합니다. 특히 수정·답변 요청이 도착했다면 해당 요청의 처리 여부를 기준으로 후속 조치를 진행합니다.
+
+`check-compatibility.py`는 Internal API 사용이 남아 있으면 오류로 종료합니다. 기존 Verifier 결과만 다시 확인하려면 다음 명령을 사용합니다.
+
+```sh
+python3 verifier_report.py /path/to/plugin-version-report-directory
+```
+
+검사 디렉터리에는 `verification-verdict.txt`가 있어야 합니다. `internal-api-usages.txt`의 내용과 verdict의 Internal API 건수를 함께 확인합니다.
+
 ## 4. 배포 파일 점검
 
 ### 포함 파일
